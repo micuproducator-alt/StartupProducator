@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    /* Setări de bază */
+    "target": "ES2022" /* Versiunea de JavaScript generată */,
+    "module": "NodeNext" /* Suport pentru module moderne Node.js */,
+    "moduleResolution": "NodeNext",
+    "rootDir": "./src" /* Unde se află codul tău sursă */,
+    "outDir": "./dist" /* Unde se va salva codul compilat */,
+
+    /* Strictțe și Siguranță */
+    "strict": true /* Activează verificările de tip stricte */,
+    "noImplicitAny": true /* Nu permite tipul 'any' nedeclarat */,
+    "esModuleInterop": true /* Permite importuri de tip CommonJS (ex: Express) */,
+    "skipLibCheck": true /* Sare peste verificarea fișierelor .d.ts externe */,
+    "forceConsistentCasingInFileNames": true /* Important pentru colaborarea între Windows și Linux/Mac */,
+
+    /* Prisma & Source Maps */
+    "sourceMap": true /* Ajută la debugging (leagă eroarea din JS de codul TS) */,
+    "declaration": true /* Generează fișiere de definiție pentru tipuri */
+  },
+  "include": ["src/**/*"] /* Include tot ce e în src */,
+  "exclude": [
+    "node_modules",
+    "dist"
+  ] /* Ignoră folderele de build și librării */
+}

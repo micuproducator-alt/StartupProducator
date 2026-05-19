@@ -1,0 +1,286 @@
+import { Ad, AdStatus, CreateAdPayload, Review } from "../types";
+import { supabase } from "./supabaseClient";
+
+/**
+ * CONFIGURARE BACKEND
+ */
+const USE_SUPABASE = !!supabase;
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const generateId = (): string => {
+  if (typeof crypto !== "undefined" && crypto.randomUUID)
+    return crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+};
+
+const mapAdFromDB = (row: any): Ad => ({
+  ...row,
+  id: row.id,
+  createdAt: new Date(row.created_at).getTime(),
+  expiresAt: row.expires_at ? new Date(row.expires_at).getTime() : null,
+  images: Array.isArray(row.ads_images)
+    ? row.ads_images.map((img: any) => img.url)
+    : [],
+  reviews: Array.isArray(row.ads_reviews)
+    ? row.ads_reviews.map((r: any) => ({
+        id: r.id,
+        author: r.author || "Anonim",
+        rating: Number(r.rating || 5),
+        comment: r.comment,
+        createdAt: new Date(r.created_at).getTime(),
+      }))
+    : [],
+  price: Number(row.price),
+  rating: Number(row.rating || 0),
+  phoneNumber: row.phone_number,
+  token: row.token_hash,
+  location: {
+    county: row.county,
+    city: row.city,
+    village: row.village || "",
+  },
+  isPremium: row.is_premium || false,
+  stats: {
+    views: row.views || 0,
+    whatsappClicks: row.whatsapp_clicks || 0,
+    favorites: row.favorites || 0,
+  },
+});
+
+/**
+ * 1. FUNCȚII DE PLATĂ & ACTIVARE
+ */
+export const activateAdWithExpiry = async (
+  adId: string,
+  days: number,
+): Promise<boolean> => {
+  if (!USE_SUPABASE) return false;
+
+  const expiryDate = new Date();
+  expiryDate.setDate(expiryDate.getDate() + days);
+
+  const { error } = await supabase!
+    .from("ads")
+    .update({
+      status: "active",
+      is_premium: true,
+      expires_at: expiryDate.toISOString(),
+    })
+    .eq("id", adId);
+
+  return !error;
+};
+
+export const startPaymentSession = async (
+  adId: string,
+  planId: string,
+  email: string,
+) => {
+  if (!supabase) return { url: null };
+  try {
+    const { data, error } = await supabase.functions.invoke(
+      "create-stripe-session",
+      {
+        body: { adId, planId, customerEmail: email },
+      },
+    );
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.error("Stripe session error:", err);
+    return { url: null };
+  }
+};
+
+export const verifyPaymentSession = async (
+  adId: string,
+): Promise<{ success: boolean; ad?: Ad }> => {
+  if (USE_SUPABASE) {
+    const { data, error } = await supabase!
+      .from("ads")
+      .select("*, ads_images(url), ads_reviews(*)")
+      .eq("id", adId)
+      .single();
+    if (!error && data && data.status === "active")
+      return { success: true, ad: mapAdFromDB(data) };
+  }
+  return { success: false };
+};
+
+export const simulatePaymentSuccess = async (
+  adId: string,
+  days: number = 30,
+): Promise<void> => {
+  await delay(1000);
+  await activateAdWithExpiry(adId, days);
+};
+
+/**
+ * 2. FUNCȚII ANUNȚURI
+ */
+export const fetchActiveAds = async (): Promise<Ad[]> => {
+  if (USE_SUPABASE) {
+    const now = new Date().toISOString();
+    const { data, error } = await supabase!
+      .from("ads")
+      .select(`*, ads_images(url), ads_reviews(*)`)
+      .eq("status", "active")
+      .gt("expires_at", now) // FILTRU: Nu returnăm anunțurile expirate
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Eroare fetchActiveAds:", error);
+      return [];
+    }
+    return data ? data.map(mapAdFromDB) : [];
+  }
+  return [];
+};
+
+export const fetchAdById = async (id: string): Promise<Ad | null> => {
+  if (USE_SUPABASE && supabase) {
+    const { data, error } = await supabase
+      .from("ads")
+      .select(`*, ads_images(url), ads_reviews(*)`)
+      .eq("id", id)
+      .single();
+
+    if (error || !data) return null;
+
+    // --- LOGICA HIBRIDĂ ---
+    const now = new Date();
+    const expiryDate = data.expires_at ? new Date(data.expires_at) : null;
+
+    // Verificăm dacă anunțul a expirat
+    if (expiryDate && expiryDate < now) {
+      // Dacă în DB încă apare ca 'active', îl reparăm în fundal (Lazy Update)
+      if (data.status === "active") {
+        supabase.from("ads").update({ status: "expired" }).eq("id", id).then(); // Nu punem await aici ca să nu blocăm utilizatorul
+      }
+
+      // Returnăm null pentru că anunțul este expirat pentru public
+      return null;
+    }
+    // -----------------------
+
+    return mapAdFromDB(data);
+  }
+
+  // Dacă nu folosim Supabase, returnăm null sau un obiect gol
+  // (Am șters referința la mockAds care genera eroarea)
+  return null;
+};
+
+export const verifyManageToken = async (
+  id: string,
+  token: string,
+): Promise<Ad | null> => {
+  if (USE_SUPABASE) {
+    const { data } = await supabase!
+      .from("ads")
+      .select("*, ads_images(url), ads_reviews(*)")
+      .eq("id", id)
+      .eq("token_hash", token)
+      .single();
+    if (data) return mapAdFromDB(data);
+  }
+  return null;
+};
+
+/**
+ * 3. RECENZII
+ */
+export const addReview = async (adId: string, review: any): Promise<Review> => {
+  if (USE_SUPABASE) {
+    const { data, error } = await supabase!
+      .from("ads_reviews")
+      .insert({
+        ad_id: adId,
+        author: review.author || "Anonim",
+        rating: review.rating,
+        comment: review.comment,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return {
+      id: data.id,
+      author: data.author,
+      rating: data.rating,
+      comment: data.comment || data.text || "",
+      createdAt: new Date(data.created_at).getTime(),
+    };
+  }
+  throw new Error("Supabase not connected");
+};
+
+/**
+ * 4. GESTIONARE & ADMIN
+ */
+export const createAd = async (
+  payload: CreateAdPayload,
+): Promise<{ adId: string; token: string }> => {
+  const token = generateId().replace(/-/g, "");
+  if (USE_SUPABASE) {
+    const { data, error } = await supabase!
+      .from("ads")
+      .insert({
+        title: payload.title,
+        description: payload.description,
+        price: payload.price,
+        email: payload.email,
+        phone_number: payload.phoneNumber,
+        county: payload.location.county,
+        city: payload.location.city,
+        village: payload.location.village,
+        token_hash: token,
+        status: "pending",
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return { adId: data.id, token };
+  }
+  throw new Error("Creation failed");
+};
+
+export const updateAd = async (
+  id: string,
+  token: string,
+  updates: any,
+): Promise<boolean> => {
+  const isAdminBypass = token === "admin_override";
+  if (USE_SUPABASE) {
+    let query = supabase!.from("ads").update(updates).eq("id", id);
+    if (!isAdminBypass) query = query.eq("token_hash", token);
+    const { error } = await query;
+    return !error;
+  }
+  return false;
+};
+
+export const deleteAd = async (id: string, token: string): Promise<boolean> => {
+  if (USE_SUPABASE) {
+    const { error } = await supabase!
+      .from("ads")
+      .delete()
+      .eq("id", id)
+      .eq("token_hash", token);
+    return !error;
+  }
+  return false;
+};
+
+export const getAllAds = async () => fetchActiveAds();
+export const adminDeleteAd = async (id: string) =>
+  deleteAd(id, "admin_override");
+export const adminUpdateAd = async (id: string, updates: any) =>
+  updateAd(id, "admin_override", updates);
+export const fetchNotifications = async () => [];
+export const markNotificationRead = async (id: string) => {};
+export const clearAllNotifications = async () => {};
