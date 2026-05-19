@@ -33,10 +33,37 @@ const PRICING_TABLE: Record<string, Record<number, number>> = {
 };
 
 // --- 1. CONFIGURĂRI DE SECURITATE ---
-app.use(helmet());
+// --- 1. CONFIGURĂRI DE SECURITATE ---
+// Dezactivăm parțial regulile Helmet care se bat cap în cap cu CORS și scripturile externe (cum e cel de la Tailwind)
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: false, // Permite încarcarea scripturilor externe gen cdn.tailwindcss.com
+  }),
+);
+
+// Permitem conexiuni din ambele medii (Local și Vercel)
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://startup-producator-2vuac5o6u-miculproducator.vercel.app",
+  "https://startup-producator.vercel.app", // Pune și varianta scurtă dacă o ai
+];
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: function (origin, callback) {
+      // Permite cereri fără origine (cum sunt cele de pe server-to-server sau Postman)
+      if (!origin) return callback(null, true);
+
+      if (
+        allowedOrigins.indexOf(origin) !== -1 ||
+        process.env.NODE_ENV !== "production"
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error("Blocat de CORS: Originea nu este permisă!"));
+      }
+    },
     credentials: true,
     optionsSuccessStatus: 200,
   }),
