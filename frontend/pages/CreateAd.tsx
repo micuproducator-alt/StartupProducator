@@ -122,7 +122,9 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
   }, [selectedPlan, selectedDuration]);
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/geo/counties")
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+
+    fetch(`${apiUrl}/geo/counties`)
       .then((res) => res.json())
       .then((data) => {
         console.log("Date primite județe:", data);
@@ -130,11 +132,13 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
       })
       .catch((err) => console.error(err));
   }, []);
-
   useEffect(() => {
     if (selectedCountyCode) {
       setLoadingGeo(true);
-      fetch(`http://localhost:3000/api/geo/locations/${selectedCountyCode}`)
+      const apiUrl =
+        import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+
+      fetch(`${apiUrl}/geo/locations/${selectedCountyCode}`)
         .then((res) => res.json())
         .then((data) => {
           console.log("Date primite orașe:", data);
@@ -246,19 +250,20 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
     setLoading(true);
     setLoadingMessage("Te conectăm la Stripe...");
     try {
-      const response = await fetch(
-        "http://localhost:3000/api/payment/create-session",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            adId: createdAdData.adId,
-            plan_type: selectedPlan.id,
-            duration: selectedDuration.days,
-            email: createdAdData.email,
-          }),
-        },
-      );
+      // Preluăm URL-ul dinamic (live pe Vercel sau localhost pe PC)
+      const apiUrl =
+        import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+
+      const response = await fetch(`${apiUrl}/payment/create-session`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          adId: createdAdData.adId,
+          plan_type: selectedPlan.id,
+          duration: selectedDuration.days,
+          email: createdAdData.email,
+        }),
+      });
       const session = await response.json();
       if (session.url) window.location.href = session.url;
     } catch (err) {
