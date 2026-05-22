@@ -64,8 +64,9 @@ router.post("/create-session", async (req, res) => {
         planType: selectedPlan,
         duration: String(selectedDuration),
       },
-      success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.FRONTEND_URL}/cancel`,
+      // URL-urile corectate care te trimit pe prima pagina curata din Vercel
+      success_url: `${process.env.FRONTEND_URL?.replace(/\/$/, "")}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.FRONTEND_URL?.replace(/\/$/, "")}/?payment=cancel`,
     });
 
     console.log(`✅ Stripe Session: ${priceInRon} RON pentru Ad: ${adId}`);
