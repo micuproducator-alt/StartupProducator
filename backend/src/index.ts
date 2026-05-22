@@ -355,8 +355,9 @@ app.post(
           planType: plan,
           duration: String(duration),
         },
-        success_url: `${process.env.FRONTEND_URL}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.FRONTEND_URL}/?payment=cancel`,
+        // Înlocuiește în index.ts bucata cu URL-urile de redirecționare:
+        success_url: `${process.env.FRONTEND_URL?.replace(/\/$/, "")}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.FRONTEND_URL?.replace(/\/$/, "")}/?payment=cancel`,
       });
 
       res
