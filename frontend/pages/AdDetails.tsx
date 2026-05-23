@@ -443,13 +443,15 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
                 </div>
               </div>
             </div>
-            <div className="bg-stone-900 text-white px-8 py-5 rounded-3xl shadow-xl shadow-stone-200">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] block mb-1 opacity-60">
+            <div className="w-full sm:w-auto max-w-xs bg-stone-900 text-white px-5 py-4 sm:px-8 sm:py-5 rounded-2xl sm:rounded-3xl shadow-lg shadow-stone-200/50 flex flex-col justify-center">
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] block mb-0.5 opacity-60">
                 Preț Gospodar
               </span>
-              <span className="text-3xl font-black">
+              <span className="text-2xl sm:text-3xl font-black whitespace-nowrap">
                 {ad.price}{" "}
-                <span className="text-sm font-bold uppercase">RON</span>
+                <span className="text-xs sm:text-sm font-bold uppercase text-stone-400">
+                  RON
+                </span>
               </span>
             </div>
           </div>
@@ -642,6 +644,9 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
                     ad={related}
                     onClick={() => handleRelatedClick(related)}
                     mini={true}
+                    /* Rezolvare eroare TypeScript: */
+                    isFavorite={false}
+                    onToggleFavorite={() => {}}
                   />
                 ))}
               </div>
