@@ -21,6 +21,7 @@ Sentry.init({
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
 const app = express();
+app.set("trust proxy", 1);
 const PORT = process.env.PORT || 3000;
 let cachedCounties: any = null;
 let cachedLocations: Record<number, any> = {};
