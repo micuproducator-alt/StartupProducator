@@ -465,14 +465,14 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
             </div>
           </div>
 
-          <div className="mt-12 p-8 bg-emerald-50/50 rounded-[2.5rem] border border-emerald-100/50">
-            <div className="flex flex-col sm:flex-row gap-4">
+          <div className="mt-8 p-4 sm:p-8 bg-emerald-50/50 rounded-3xl sm:rounded-[2.5rem] border border-emerald-100/50 w-full">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full">
               {whatsappLink && (
                 <a
                   href={whatsappLink}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex-1 h-16 flex items-center justify-center gap-3 bg-[#25D366] text-white rounded-2xl font-bold uppercase tracking-widest text-xs hover:shadow-lg transition-all active:scale-95"
+                  className="w-full sm:flex-1 h-14 sm:h-16 flex items-center justify-center gap-3 bg-[#25D366] text-white rounded-xl sm:rounded-2xl font-bold uppercase tracking-wider text-sm sm:text-xs hover:shadow-lg transition-all active:scale-95"
                 >
                   Contact WhatsApp
                 </a>
@@ -481,19 +481,19 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
               {!showEmail ? (
                 <button
                   onClick={() => setShowEmail(true)}
-                  className="flex-1 h-16 flex items-center justify-center gap-3 bg-white border border-stone-200 text-stone-700 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-stone-50 transition-all active:scale-95 shadow-sm"
+                  className="w-full sm:flex-1 h-14 sm:h-16 flex items-center justify-center gap-3 bg-white border border-stone-200 text-stone-700 rounded-xl sm:rounded-2xl font-bold uppercase tracking-wider text-sm sm:text-xs hover:bg-stone-50 transition-all active:scale-95 shadow-sm"
                 >
                   Afișează Email
                 </button>
               ) : (
                 <a
                   href={`mailto:${ad.email}`}
-                  className="flex-1 h-16 flex flex-col items-center justify-center bg-white border-2 border-emerald-100 text-stone-800 rounded-2xl transition-all shadow-md"
+                  className="w-full sm:flex-1 h-14 sm:h-16 flex flex-col items-center justify-center bg-white border-2 border-emerald-100 text-stone-800 rounded-xl sm:rounded-2xl transition-all shadow-md px-2 overflow-hidden"
                 >
-                  <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">
+                  <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">
                     Email:
                   </span>
-                  <span className="text-xs font-black text-emerald-700">
+                  <span className="text-sm sm:text-xs font-black text-emerald-700 truncate max-w-full">
                     {ad.email}
                   </span>
                 </a>
