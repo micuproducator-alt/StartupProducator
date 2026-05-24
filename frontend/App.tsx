@@ -40,20 +40,26 @@ const App: React.FC = () => {
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const notifDropdownRef = useRef<HTMLDivElement>(null);
 
-  // INTERCEPTARE LINK: Deschide automat anunțul ca Pop-up când venim din exterior sau dăm Refresh
+// INTERCEPTARE LINK: Deschide automat anunțul ca Pop-up, compatibil și cu ID și cu SLUG
   useEffect(() => {
     const checkDirectAdLink = async () => {
       const path = currentPath.replace("#", "");
       if (path.startsWith("/ad/")) {
-        const adId = path.split("/ad/")[1];
-        if (adId) {
+        const adParam = path.split("/ad/")[1]; // Poate fi un UUID sau un slug text
+        if (adParam) {
           try {
             const activeAds = await fetchActiveAds();
-            const matchingAd = activeAds.find((a: Ad) => a.id === adId);
-
+            
+            // Căutăm întâi după ID (UUID), iar dacă nu se potrivește, căutăm după SLUG
+            const matchingAd = activeAds.find(
+              (a: Ad) => a.id === adParam || a.slug === adParam
+            );
+            
             if (matchingAd) {
               setSelectedAd(matchingAd);
-              // PĂSTRĂM URL-ul intact! Nu mai resetăm la "#/", lăsăm calea pentru SHARE.
+              // Păstrăm URL-ul intact așa cum a venit din Share
+            } else {
+              console.warn("Anunțul solicitat nu a fost găsit în baza de date.");
             }
           } catch (error) {
             console.error("Eroare la încărcarea automată a anunțului:", error);
@@ -162,9 +168,10 @@ const App: React.FC = () => {
         <Home
           onNavigate={navigate}
           onOpenCreateModal={() => setIsCreateModalOpen(true)}
-          onAdClick={(ad) => {
+        onAdClick={(ad) => {
             setSelectedAd(ad);
-            window.location.hash = `#/ad/${ad.id}`; // Sincronizăm URL-ul și când dăm click din grid!
+            // Dacă anunțul are slug, punem slug în URL, altfel punem id-ul standard
+            window.location.hash = `#/ad/${ad.slug || ad.id}`; 
           }}
           favoriteIds={favorites}
           onToggleFavorite={handleToggleFavorite}
@@ -479,7 +486,7 @@ const App: React.FC = () => {
         <ToastContainer toasts={toasts} removeToast={removeToast} />
       </div>
     </HelmetProvider>
-  );
+  );https://startup-producator.vercel.app/#/ad/d861c21d-ed05-4e38-8b91-d5f094eed6d4
 };
 
 export default App;
