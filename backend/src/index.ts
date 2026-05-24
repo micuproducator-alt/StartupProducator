@@ -137,8 +137,8 @@ app.post(
               toEmail: userEmail,
               adTitle: updatedAd.title,
               amount: session.amount_total! / 100,
-              // MODIFICAREA AICI: Schimbăm "/anunt/" cu "/#/ad/" ca să se potrivească la fix cu ruta din Frontend
-              editUrl: `${siteUrl}/#/ad/${updatedAd.slug}`,
+              // MODIFICAREA AICI: Am pus .id în loc de .slug la final ca baza de date să primească UUID-ul corect
+              editUrl: `${siteUrl}/#/ad/${updatedAd.id}`,
             });
           }
         } catch (error) {
