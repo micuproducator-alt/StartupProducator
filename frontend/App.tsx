@@ -40,7 +40,7 @@ const App: React.FC = () => {
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const notifDropdownRef = useRef<HTMLDivElement>(null);
 
-  // INTERCEPTARE LINK EMAIL: Deschide automat anunțul ca Pop-up (Modal) peste pagina de Home
+  // INTERCEPTARE LINK: Deschide automat anunțul ca Pop-up când venim din exterior sau dăm Refresh
   useEffect(() => {
     const checkDirectAdLink = async () => {
       const path = currentPath.replace("#", "");
@@ -48,20 +48,15 @@ const App: React.FC = () => {
         const adId = path.split("/ad/")[1];
         if (adId) {
           try {
-            // Preluăm anunțurile active și îl căutăm pe cel trimis în email după ID
             const activeAds = await fetchActiveAds();
             const matchingAd = activeAds.find((a: Ad) => a.id === adId);
 
             if (matchingAd) {
               setSelectedAd(matchingAd);
-              // Resetăm hash-ul la pagina de acasă pentru ca fundalul să fie Home
-              window.location.hash = "#/";
+              // PĂSTRĂM URL-ul intact! Nu mai resetăm la "#/", lăsăm calea pentru SHARE.
             }
           } catch (error) {
-            console.error(
-              "Eroare la încărcarea automată a anunțului din email:",
-              error,
-            );
+            console.error("Eroare la încărcarea automată a anunțului:", error);
           }
         }
       }
@@ -69,6 +64,14 @@ const App: React.FC = () => {
 
     checkDirectAdLink();
   }, [currentPath]);
+
+  // Când utilizatorul închide modalul manual (apasă pe X), curățăm URL-ul înapoi în homepage simplu
+  const handleCloseAdModal = () => {
+    setSelectedAd(null);
+    if (window.location.hash.includes("/ad/")) {
+      window.location.hash = "#/";
+    }
+  };
 
   useEffect(() => {
     // Initial load of favorites from client storage
@@ -153,13 +156,16 @@ const App: React.FC = () => {
     const path = currentPath.replace("#", "");
     const cleanPath = path.split("?")[0];
 
-    // Home Route
+    // Home Route (Observă că randăm Home și când suntem pe calea de /ad/, asigurând fundalul corect)
     if (cleanPath === "/" || cleanPath === "" || cleanPath.startsWith("/ad/")) {
       return (
         <Home
           onNavigate={navigate}
           onOpenCreateModal={() => setIsCreateModalOpen(true)}
-          onAdClick={(ad) => setSelectedAd(ad)}
+          onAdClick={(ad) => {
+            setSelectedAd(ad);
+            window.location.hash = `#/ad/${ad.id}`; // Sincronizăm URL-ul și când dăm click din grid!
+          }}
           favoriteIds={favorites}
           onToggleFavorite={handleToggleFavorite}
           onAddToast={addToast}
@@ -255,7 +261,7 @@ const App: React.FC = () => {
                           }}
                           className="text-emerald-600 hover:underline"
                         >
-                          Șterge tout
+                          Șterge tot
                         </button>
                       </div>
                       <div className="max-h-96 overflow-y-auto">
@@ -455,14 +461,14 @@ const App: React.FC = () => {
 
         <Modal
           isOpen={!!selectedAd}
-          onClose={() => setSelectedAd(null)}
+          onClose={handleCloseAdModal}
           title="Detalii Anunț"
         >
           {selectedAd && (
             <AdDetails
               id={selectedAd.id}
               initialData={selectedAd}
-              onClose={() => setSelectedAd(null)}
+              onClose={handleCloseAdModal}
               isFavorite={favorites.includes(selectedAd.id)}
               onToggleFavorite={() => handleToggleFavorite(selectedAd.id)}
               onAddToast={addToast}
