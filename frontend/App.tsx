@@ -40,7 +40,7 @@ const App: React.FC = () => {
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const notifDropdownRef = useRef<HTMLDivElement>(null);
 
-// INTERCEPTARE LINK: Deschide automat anunțul ca Pop-up, compatibil și cu ID și cu SLUG
+  // INTERCEPTARE LINK: Deschide automat anunțul ca Pop-up, compatibil și cu ID și cu SLUG
   useEffect(() => {
     const checkDirectAdLink = async () => {
       const path = currentPath.replace("#", "");
@@ -49,17 +49,19 @@ const App: React.FC = () => {
         if (adParam) {
           try {
             const activeAds = await fetchActiveAds();
-            
+
             // Căutăm întâi după ID (UUID), iar dacă nu se potrivește, căutăm după SLUG
             const matchingAd = activeAds.find(
-              (a: Ad) => a.id === adParam || a.slug === adParam
+              (a: Ad) => a.id === adParam || a.slug === adParam,
             );
-            
+
             if (matchingAd) {
               setSelectedAd(matchingAd);
               // Păstrăm URL-ul intact așa cum a venit din Share
             } else {
-              console.warn("Anunțul solicitat nu a fost găsit în baza de date.");
+              console.warn(
+                "Anunțul solicitat nu a fost găsit în baza de date.",
+              );
             }
           } catch (error) {
             console.error("Eroare la încărcarea automată a anunțului:", error);
@@ -168,10 +170,10 @@ const App: React.FC = () => {
         <Home
           onNavigate={navigate}
           onOpenCreateModal={() => setIsCreateModalOpen(true)}
-        onAdClick={(ad) => {
+          onAdClick={(ad) => {
             setSelectedAd(ad);
             // Dacă anunțul are slug, punem slug în URL, altfel punem id-ul standard
-            window.location.hash = `#/ad/${ad.slug || ad.id}`; 
+            window.location.hash = `#/ad/${ad.slug || ad.id}`;
           }}
           favoriteIds={favorites}
           onToggleFavorite={handleToggleFavorite}
@@ -486,7 +488,7 @@ const App: React.FC = () => {
         <ToastContainer toasts={toasts} removeToast={removeToast} />
       </div>
     </HelmetProvider>
-  );https://startup-producator.vercel.app/#/ad/d861c21d-ed05-4e38-8b91-d5f094eed6d4
+  );
 };
 
 export default App;
