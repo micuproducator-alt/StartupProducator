@@ -18,6 +18,14 @@ export const sendPaymentConfirmation = async (
 ) => {
   const { toEmail, adTitle, amount, editUrl } = params;
 
+  // REPARARE URL: Ne asigurăm că link-ul folosește ruta corectă cu Hash Router (/#/ad/)
+  let finalUrl = editUrl;
+  if (finalUrl.includes("/anunt/")) {
+    finalUrl = finalUrl.replace("/anunt/", "/#/ad/");
+  } else if (finalUrl.includes("/ad/") && !finalUrl.includes("#")) {
+    finalUrl = finalUrl.replace("/ad/", "/#/ad/");
+  }
+
   const data = {
     sender: {
       name: process.env.OFFICIAL_NAME || "Micul Producător",
@@ -48,7 +56,7 @@ export const sendPaymentConfirmation = async (
           Suma achitată: <span style="font-weight: bold;">${amount} RON</span></p>
 
           <div style="text-align: center; margin: 35px 0;">
-            <a href="${editUrl}" style="background-color: #2563eb; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 16px;">Verifică Anunțul</a>
+            <a href="${finalUrl}" style="background-color: #2563eb; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 16px;">Verifică Anunțul</a>
           </div>
         </div>
 
