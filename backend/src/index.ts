@@ -126,9 +126,7 @@ app.post(
               },
             });
           }
-
           if (userEmail) {
-            // Folosește URL-ul din mediu sau direct domeniul tău corect de Vercel ca fallback
             const siteUrl =
               process.env.FRONTEND_URL ||
               "https://startup-producator.vercel.app";
@@ -137,8 +135,8 @@ app.post(
               toEmail: userEmail,
               adTitle: updatedAd.title,
               amount: session.amount_total! / 100,
-              // MODIFICAREA AICI: Am pus .id în loc de .slug la final ca baza de date să primească UUID-ul corect
-              editUrl: `${siteUrl}/#/ad/${updatedAd.id}`,
+              // MODIFICAREA AICI: Trimitem pe homepage, dar cu un parametru de identificare a anunțului
+              editUrl: `${siteUrl}/?adId=${updatedAd.id}`,
             });
           }
         } catch (error) {

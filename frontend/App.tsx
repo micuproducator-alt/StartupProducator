@@ -40,6 +40,36 @@ const App: React.FC = () => {
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const notifDropdownRef = useRef<HTMLDivElement>(null);
 
+  // INTERCEPTARE LINK EMAIL: Deschide automat anunțul ca Pop-up (Modal) peste pagina de Home
+  useEffect(() => {
+    const checkDirectAdLink = async () => {
+      const path = currentPath.replace("#", "");
+      if (path.startsWith("/ad/")) {
+        const adId = path.split("/ad/")[1];
+        if (adId) {
+          try {
+            // Preluăm anunțurile active și îl căutăm pe cel trimis în email după ID
+            const activeAds = await fetchActiveAds();
+            const matchingAd = activeAds.find((a: Ad) => a.id === adId);
+
+            if (matchingAd) {
+              setSelectedAd(matchingAd);
+              // Resetăm hash-ul la pagina de acasă pentru ca fundalul să fie Home
+              window.location.hash = "#/";
+            }
+          } catch (error) {
+            console.error(
+              "Eroare la încărcarea automată a anunțului din email:",
+              error,
+            );
+          }
+        }
+      }
+    };
+
+    checkDirectAdLink();
+  }, [currentPath]);
+
   useEffect(() => {
     // Initial load of favorites from client storage
     const saved = localStorage.getItem("miculproducator_favorites");
@@ -124,7 +154,7 @@ const App: React.FC = () => {
     const cleanPath = path.split("?")[0];
 
     // Home Route
-    if (cleanPath === "/" || cleanPath === "") {
+    if (cleanPath === "/" || cleanPath === "" || cleanPath.startsWith("/ad/")) {
       return (
         <Home
           onNavigate={navigate}
@@ -152,20 +182,6 @@ const App: React.FC = () => {
       if (id && token) {
         return <ManageAd id={id} token={token} onNavigate={navigate} />;
       }
-    }
-
-    // Direct link to an ad listing
-    if (cleanPath.startsWith("/ad/")) {
-      const id = cleanPath.split("/ad/")[1];
-      return (
-        <AdDetails
-          id={id}
-          onNavigate={navigate}
-          isFavorite={favorites.includes(id)}
-          onToggleFavorite={() => handleToggleFavorite(id)}
-          onAddToast={addToast}
-        />
-      );
     }
 
     return (
@@ -239,7 +255,7 @@ const App: React.FC = () => {
                           }}
                           className="text-emerald-600 hover:underline"
                         >
-                          Șterge tot
+                          Șterge tout
                         </button>
                       </div>
                       <div className="max-h-96 overflow-y-auto">
