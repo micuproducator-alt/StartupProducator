@@ -128,7 +128,7 @@ app.post(
           }
 
           if (userEmail) {
-            // 1. Definim URL-ul de live. Dacă process.env.FRONTEND_URL nu e găsit, va folosi automat ce scrii în ghilimele
+            // Folosește URL-ul din mediu sau direct domeniul tău corect de Vercel ca fallback
             const siteUrl =
               process.env.FRONTEND_URL ||
               "https://startup-producator.vercel.app";
@@ -137,8 +137,8 @@ app.post(
               toEmail: userEmail,
               adTitle: updatedAd.title,
               amount: session.amount_total! / 100,
-              // 2. Construim link-ul final folosind siteUrl stabilit mai sus
-              editUrl: `${siteUrl}/anunt/${updatedAd.slug}`,
+              // MODIFICAREA AICI: Schimbăm "/anunt/" cu "/#/ad/" ca să se potrivească la fix cu ruta din Frontend
+              editUrl: `${siteUrl}/#/ad/${updatedAd.slug}`,
             });
           }
         } catch (error) {
