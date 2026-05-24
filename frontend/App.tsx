@@ -41,31 +41,50 @@ const App: React.FC = () => {
   const notifDropdownRef = useRef<HTMLDivElement>(null);
 
   // INTERCEPTARE LINK: Deschide automat anunțul ca Pop-up, compatibil și cu ID și cu SLUG
+  // INTERCEPTARE LINK: Suportă link-uri de Share (#/ad/slug), dar și link-uri din email (?adId=id)
   useEffect(() => {
     const checkDirectAdLink = async () => {
-      const path = currentPath.replace("#", "");
-      if (path.startsWith("/ad/")) {
-        const adParam = path.split("/ad/")[1]; // Poate fi un UUID sau un slug text
-        if (adParam) {
-          try {
-            const activeAds = await fetchActiveAds();
+      let adParam = "";
 
-            // Căutăm întâi după ID (UUID), iar dacă nu se potrivește, căutăm după SLUG
-            const matchingAd = activeAds.find(
-              (a: Ad) => a.id === adParam || a.slug === adParam,
-            );
+      // 1. Verificăm mai întâi dacă avem link de tip EMAIL (cu query parameter: ?adId=...)
+      const urlParams = new URLSearchParams(window.location.search);
+      const emailAdId = urlParams.get("adId");
 
-            if (matchingAd) {
-              setSelectedAd(matchingAd);
-              // Păstrăm URL-ul intact așa cum a venit din Share
-            } else {
-              console.warn(
-                "Anunțul solicitat nu a fost găsit în baza de date.",
-              );
-            }
-          } catch (error) {
-            console.error("Eroare la încărcarea automată a anunțului:", error);
+      if (emailAdId) {
+        adParam = emailAdId;
+        // Curățăm URL-ul din browser ca să arate frumos în formatul SPA standard cu hash
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname,
+        );
+      } else {
+        // 2. Dacă nu e link din email, verificăm dacă este link normal de Share (#/ad/...)
+        const path = currentPath.replace("#", "");
+        if (path.startsWith("/ad/")) {
+          adParam = path.split("/ad/")[1];
+        }
+      }
+
+      // Dacă am extras un ID sau un Slug prin una dintre cele două metode, căutăm anunțul
+      if (adParam) {
+        try {
+          const activeAds = await fetchActiveAds();
+
+          // Căutăm în baza de date fie după ID (UUID-ul din email), fie după SLUG (din share)
+          const matchingAd = activeAds.find(
+            (a: Ad) => a.id === adParam || a.slug === adParam,
+          );
+
+          if (matchingAd) {
+            setSelectedAd(matchingAd);
+            // Sincronizăm URL-ul final în formatul curat și corect de share
+            window.location.hash = `#/ad/${matchingAd.slug || matchingAd.id}`;
+          } else {
+            console.warn("Anunțul din link nu a fost găsit în baza de date.");
           }
+        } catch (error) {
+          console.error("Eroare la încărcarea automată a anunțului:", error);
         }
       }
     };
