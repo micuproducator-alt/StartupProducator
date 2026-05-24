@@ -128,11 +128,17 @@ app.post(
           }
 
           if (userEmail) {
+            // 1. Definim URL-ul de live. Dacă process.env.FRONTEND_URL nu e găsit, va folosi automat ce scrii în ghilimele
+            const siteUrl =
+              process.env.FRONTEND_URL ||
+              "https://startup-producator.vercel.app";
+
             await sendPaymentConfirmation({
               toEmail: userEmail,
               adTitle: updatedAd.title,
               amount: session.amount_total! / 100,
-              editUrl: `${process.env.FRONTEND_URL}/anunt/${updatedAd.slug}`,
+              // 2. Construim link-ul final folosind siteUrl stabilit mai sus
+              editUrl: `${siteUrl}/anunt/${updatedAd.slug}`,
             });
           }
         } catch (error) {
