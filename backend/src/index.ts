@@ -43,11 +43,13 @@ app.use(
   }),
 );
 
-// Permitem conexiuni din ambele medii (Local și Vercel)
+// Permitem conexiuni din medii autorizate (Local, Vercel și noul domeniu oficial)
 const allowedOrigins = [
   "http://localhost:5173",
   "https://startup-producator-2vuac5o6u-miculproducator.vercel.app",
-  "https://startup-producator.vercel.app", // Pune și varianta scurtă dacă o ai
+  "https://startup-producator.vercel.app",
+  "https://locallio.ro", // <--- Noul tău domeniu oficial
+  "https://www.locallio.ro", // <--- Varianta cu www, ca să fii acoperit 100%
 ];
 
 app.use(
