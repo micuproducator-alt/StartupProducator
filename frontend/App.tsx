@@ -9,6 +9,7 @@ import { Privacy } from "./pages/Privacy";
 import { PaymentSuccess } from "./pages/PaymentSuccess";
 import { Modal } from "./components/Modal";
 import { ToastContainer } from "./components/Toast";
+import GhidContinut from "./components/GhidContinut"; // <--- Importăm conținutul ghidului creat anterior
 import { Ad, AppNotification, ToastMessage, ToastType } from "./types";
 import { HelmetProvider } from "react-helmet-async";
 import {
@@ -29,6 +30,7 @@ const App: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+  const [isGuideModalOpen, setIsGuideModalOpen] = useState(false); // <--- Stare pentru modalul ghidului
 
   // SELECTED AD: Used when opening the Ad Details modal from the Home grid.
   const [selectedAd, setSelectedAd] = useState<Ad | null>(null);
@@ -39,6 +41,20 @@ const App: React.FC = () => {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const notifDropdownRef = useRef<HTMLDivElement>(null);
+
+  // AUTO-POPUP GHID: Se deschide automat doar o singură dată la prima vizită a utilizatorului
+  useEffect(() => {
+    const hasSeenGuide = localStorage.getItem("locallio_has_seen_guide");
+    if (!hasSeenGuide) {
+      setIsGuideModalOpen(true);
+    }
+  }, []);
+
+  // Închiderea ghidului din pop-up-ul automat setează bifa în browser
+  const handleCloseGuideModal = () => {
+    setIsGuideModalOpen(false);
+    localStorage.setItem("locallio_has_seen_guide", "true");
+  };
 
   // INTERCEPTARE LINK: Deschide automat anunțul ca Pop-up, compatibil și cu ID și cu SLUG
   // INTERCEPTARE LINK: Suportă link-uri de Share (#/ad/slug), dar și link-uri din email (?adId=id)
@@ -256,6 +272,14 @@ const App: React.FC = () => {
               </div>
 
               <div className="flex items-center space-x-4">
+                {/* BUTON NAVBAR NOU: Ghidul Platformei */}
+                <button
+                  onClick={() => setIsGuideModalOpen(true)}
+                  className="text-xs font-bold uppercase tracking-widest text-stone-500 hover:text-emerald-700 bg-stone-50 hover:bg-emerald-50/50 px-4 py-2.5 rounded-xl border border-stone-100 transition-all flex items-center gap-1.5"
+                >
+                  📖 Ghid Platformă
+                </button>
+
                 <div className="relative" ref={notifDropdownRef}>
                   <button
                     onClick={() => setShowNotifDropdown(!showNotifDropdown)}
@@ -368,7 +392,7 @@ const App: React.FC = () => {
                       fill="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204 013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
                     </svg>
                   </a>
                   <a
@@ -400,6 +424,15 @@ const App: React.FC = () => {
                       className="hover:text-emerald-700 transition-colors"
                     >
                       Acasă
+                    </button>
+                  </li>
+                  {/* BUTON ADĂUGAT ÎN FOOTER */}
+                  <li>
+                    <button
+                      onClick={() => setIsGuideModalOpen(true)}
+                      className="hover:text-emerald-700 transition-colors text-left"
+                    >
+                      Ghidul Platformei
                     </button>
                   </li>
                   <li>
@@ -469,6 +502,15 @@ const App: React.FC = () => {
             onOpenTerms={() => setIsTermsModalOpen(true)}
             onOpenPrivacy={() => setIsPrivacyModalOpen(true)}
           />
+        </Modal>
+
+        {/* MODAL NOU: GHIDUL PLATFORMEI */}
+        <Modal
+          isOpen={isGuideModalOpen}
+          onClose={handleCloseGuideModal}
+          title="Ghidul Platformei Locallio"
+        >
+          <GhidContinut />
         </Modal>
 
         <Modal
