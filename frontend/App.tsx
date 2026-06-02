@@ -255,40 +255,43 @@ const App: React.FC = () => {
   return (
     <HelmetProvider>
       <div className="min-h-screen flex flex-col font-sans text-stone-800">
-        <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-stone-100 overflow-x-hidden">
-          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-            <div className="flex h-20 sm:h-24 justify-between items-center gap-2">
-              {/* BRANDING (LOGO & SUBTITLE) */}
+        <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-stone-100 w-full">
+          {/* Am schimbat px-3 in px-4 pe mobil pentru a forța acea aerisire în margini */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex h-20 justify-between items-center gap-4">
+              {/* BRANDING (AERISIT PENTRU MOBIL) */}
               <div
-                className="flex flex-col cursor-pointer group min-w-0 flex-shrink"
+                className="flex flex-col cursor-pointer group min-w-0"
                 onClick={() => navigate("/")}
               >
-                <span className="text-base sm:text-xl font-bold text-stone-900 tracking-tight transition-colors group-hover:text-emerald-700 leading-none truncate">
+                <span className="text-lg sm:text-xl font-bold text-stone-900 tracking-tight transition-colors group-hover:text-emerald-700 leading-none">
                   MiculProducator
                 </span>
-                <span className="text-[7px] sm:text-[9px] font-bold uppercase tracking-[0.1em] sm:tracking-[0.15em] bg-gradient-to-r from-blue-700 via-yellow-500 to-red-600 bg-clip-text text-transparent mt-1 sm:mt-1.5 transition-all group-hover:opacity-80 truncate">
+                {/* Subtitlul se ascunde complet pe mobil (hidden) și apare doar de la sm (tablete/PC) în sus */}
+                <span className="hidden sm:block text-[9px] font-bold uppercase tracking-[0.15em] bg-gradient-to-r from-blue-700 via-yellow-500 to-red-600 bg-clip-text text-transparent mt-1.5 transition-all group-hover:opacity-80">
                   Din Dragoste Si Pasiune Pentru Romania
                 </span>
               </div>
 
-              {/* NAVIGARE / BUTOANE COMPACTE PENTRU MOBIL */}
-              <div className="flex items-center space-x-1.5 sm:space-x-4 flex-shrink-0">
-                {/* BUTON NAVBAR: Ghidul Platformei (Text scurtat sau doar iconiță pe mobil) */}
+              {/* NAVIGARE / BUTOANE COMPACTE ȘI ALINIATE */}
+              <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+                {/* BUTON GHID (Doar iconița pe mobil pentru a lăsa spațiu ecranului) */}
                 <button
                   onClick={() => setIsGuideModalOpen(true)}
-                  className="text-[11px] sm:text-xs font-bold uppercase tracking-wider sm:tracking-widest text-stone-500 hover:text-emerald-700 bg-stone-50 hover:bg-emerald-50/50 px-2 sm:px-4 py-2 rounded-xl border border-stone-100 transition-all flex items-center gap-1 sm:gap-1.5"
+                  className="text-base sm:text-xs font-bold uppercase tracking-widest text-stone-500 hover:text-emerald-700 bg-stone-50 hover:bg-emerald-50/50 p-2.5 sm:px-4 sm:py-2.5 rounded-xl border border-stone-100 transition-all flex items-center justify-center min-w-[40px] h-[40px]"
                   title="Ghid Platformă"
                 >
                   <span>📖</span>
-                  <span className="hidden xs:inline sm:inline">Ghid</span>
-                  <span className="hidden md:inline">Platformă</span>
+                  <span className="hidden sm:inline ml-1.5">
+                    Ghid Platformă
+                  </span>
                 </button>
 
                 {/* CLOPOȚEL NOTIFICĂRI */}
                 <div className="relative" ref={notifDropdownRef}>
                   <button
                     onClick={() => setShowNotifDropdown(!showNotifDropdown)}
-                    className="p-2 rounded-xl text-stone-400 hover:bg-stone-50 hover:text-stone-600 transition-all relative"
+                    className="p-2.5 rounded-xl text-stone-400 hover:bg-stone-50 hover:text-stone-600 transition-all border border-stone-100/40 bg-stone-50/30 relative flex items-center justify-center w-[40px] h-[40px]"
                   >
                     <svg
                       className="w-5 h-5"
@@ -347,13 +350,12 @@ const App: React.FC = () => {
                   )}
                 </div>
 
-                {/* BUTONUL ADĂUGĂ ANUNȚ (Mai mic pe mobil, text redus / compact) */}
+                {/* BUTONUL ADĂUGĂ ANUNȚ */}
                 <button
                   onClick={() => setIsCreateModalOpen(true)}
-                  className="px-3 sm:px-6 py-2 sm:py-2.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider sm:tracking-widest rounded-xl shadow-sm text-white bg-stone-900 hover:bg-stone-800 transition-all hover:scale-[1.02] active:scale-95"
+                  className="h-[40px] px-4 sm:px-6 text-[11px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest rounded-xl shadow-sm text-white bg-stone-900 hover:bg-stone-800 transition-all active:scale-95 flex items-center justify-center"
                 >
-                  <span className="sm:hidden">Adaugă</span>
-                  <span className="hidden sm:inline">Adaugă Anunț</span>
+                  <span>Adaugă</span>
                 </button>
               </div>
             </div>
