@@ -254,7 +254,7 @@ const App: React.FC = () => {
 
   return (
     <HelmetProvider>
-      <div className="min-h-screen flex flex-col font-sans text-stone-800">
+      <div className="min-h-screen flex flex-col font-sans text-stone-800 px-5">
         <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-stone-100 w-full">
           {/* Am schimbat px-3 in px-4 pe mobil pentru a forța acea aerisire în margini */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
