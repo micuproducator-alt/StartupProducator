@@ -255,31 +255,36 @@ const App: React.FC = () => {
   return (
     <HelmetProvider>
       <div className="min-h-screen flex flex-col font-sans text-stone-800">
-        <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-stone-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-24 items-center">
-              {/* BRANDING */}
+        <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-stone-100 overflow-x-hidden">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div className="flex h-20 sm:h-24 justify-between items-center gap-2">
+              {/* BRANDING (LOGO & SUBTITLE) */}
               <div
-                className="flex flex-col cursor-pointer group"
+                className="flex flex-col cursor-pointer group min-w-0 flex-shrink"
                 onClick={() => navigate("/")}
               >
-                <span className="text-xl font-bold text-stone-900 tracking-tight transition-colors group-hover:text-emerald-700 leading-none">
+                <span className="text-base sm:text-xl font-bold text-stone-900 tracking-tight transition-colors group-hover:text-emerald-700 leading-none truncate">
                   MiculProducator
                 </span>
-                <span className="text-[9px] font-bold uppercase tracking-[0.15em] bg-gradient-to-r from-blue-700 via-yellow-500 to-red-600 bg-clip-text text-transparent mt-1.5 transition-all group-hover:opacity-80">
+                <span className="text-[7px] sm:text-[9px] font-bold uppercase tracking-[0.1em] sm:tracking-[0.15em] bg-gradient-to-r from-blue-700 via-yellow-500 to-red-600 bg-clip-text text-transparent mt-1 sm:mt-1.5 transition-all group-hover:opacity-80 truncate">
                   Din Dragoste Si Pasiune Pentru Romania
                 </span>
               </div>
 
-              <div className="flex items-center space-x-4">
-                {/* BUTON NAVBAR NOU: Ghidul Platformei */}
+              {/* NAVIGARE / BUTOANE COMPACTE PENTRU MOBIL */}
+              <div className="flex items-center space-x-1.5 sm:space-x-4 flex-shrink-0">
+                {/* BUTON NAVBAR: Ghidul Platformei (Text scurtat sau doar iconiță pe mobil) */}
                 <button
                   onClick={() => setIsGuideModalOpen(true)}
-                  className="text-xs font-bold uppercase tracking-widest text-stone-500 hover:text-emerald-700 bg-stone-50 hover:bg-emerald-50/50 px-4 py-2.5 rounded-xl border border-stone-100 transition-all flex items-center gap-1.5"
+                  className="text-[11px] sm:text-xs font-bold uppercase tracking-wider sm:tracking-widest text-stone-500 hover:text-emerald-700 bg-stone-50 hover:bg-emerald-50/50 px-2 sm:px-4 py-2 rounded-xl border border-stone-100 transition-all flex items-center gap-1 sm:gap-1.5"
+                  title="Ghid Platformă"
                 >
-                  📖 Ghid Platformă
+                  <span>📖</span>
+                  <span className="hidden xs:inline sm:inline">Ghid</span>
+                  <span className="hidden md:inline">Platformă</span>
                 </button>
 
+                {/* CLOPOȚEL NOTIFICĂRI */}
                 <div className="relative" ref={notifDropdownRef}>
                   <button
                     onClick={() => setShowNotifDropdown(!showNotifDropdown)}
@@ -302,8 +307,9 @@ const App: React.FC = () => {
                       <span className="absolute top-2 right-2 block h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white"></span>
                     )}
                   </button>
+
                   {showNotifDropdown && (
-                    <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl shadow-stone-200/50 z-50 border border-stone-100 animate-scale-in">
+                    <div className="absolute right-0 mt-3 w-72 sm:w-80 bg-white rounded-2xl shadow-xl shadow-stone-200/50 z-50 border border-stone-100 animate-scale-in">
                       <div className="py-3 px-5 bg-stone-50/50 border-b border-stone-100 flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-stone-400">
                         <span>Notificări</span>
                         <button
@@ -340,11 +346,14 @@ const App: React.FC = () => {
                     </div>
                   )}
                 </div>
+
+                {/* BUTONUL ADĂUGĂ ANUNȚ (Mai mic pe mobil, text redus / compact) */}
                 <button
                   onClick={() => setIsCreateModalOpen(true)}
-                  className="px-6 py-2.5 text-xs font-bold uppercase tracking-widest rounded-xl shadow-sm text-white bg-stone-900 hover:bg-stone-800 transition-all hover:scale-[1.02] active:scale-95"
+                  className="px-3 sm:px-6 py-2 sm:py-2.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider sm:tracking-widest rounded-xl shadow-sm text-white bg-stone-900 hover:bg-stone-800 transition-all hover:scale-[1.02] active:scale-95"
                 >
-                  Adaugă Anunț
+                  <span className="sm:hidden">Adaugă</span>
+                  <span className="hidden sm:inline">Adaugă Anunț</span>
                 </button>
               </div>
             </div>
