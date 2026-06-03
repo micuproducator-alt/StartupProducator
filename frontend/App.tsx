@@ -256,20 +256,23 @@ const App: React.FC = () => {
     <HelmetProvider>
       <div className="min-h-screen flex flex-col font-sans text-stone-800 px-5">
         <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-stone-100 w-full">
-          {/* Am schimbat px-3 in px-4 pe mobil pentru a forța acea aerisire în margini */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex h-20 justify-between items-center gap-4">
-              {/* BRANDING (AERISIT PENTRU MOBIL) */}
+          {/* Am păstrat px-4 pentru o aerisire corectă stânga/dreapta pe mobil */}
+          <div className="max-w-7xl mx-auto px-4 sm:my-0 sm:px-6 lg:px-8">
+            {/* Schimbat h-20 în min-h și py-3 pentru a lăsa header-ul să crească organic pe verticală */}
+            <div className="flex min-h-[104px] sm:min-h-[116px] py-3 justify-between items-center gap-4">
+              {/* BRANDING (ACUM CU SPAȚIU GENEROS ÎN JOS) */}
               <div
-                className="flex flex-col cursor-pointer group min-w-0"
+                className="flex flex-col items-start justify-center cursor-pointer group min-w-0 pb-4 sm:pb-5"
                 onClick={() => navigate("/")}
               >
-                <span className="text-lg sm:text-xl font-bold text-stone-900 tracking-tight transition-colors group-hover:text-emerald-700 leading-none">
-                  MiculProducator
-                </span>
-                {/* Subtitlul se ascunde complet pe mobil (hidden) și apare doar de la sm (tablete/PC) în sus */}
-                <span className="hidden sm:block text-[9px] font-bold uppercase tracking-[0.15em] bg-gradient-to-r from-blue-700 via-yellow-500 to-red-600 bg-clip-text text-transparent mt-1.5 transition-all group-hover:opacity-80">
-                  Din Dragoste Si Pasiune Pentru Romania
+                <img
+                  src="./assets/local.png"
+                  alt="MiculProducator Logo"
+                  className="h-11 sm:h-16 w-auto object-contain object-left transition-transform group-hover:scale-102"
+                />
+                {/* Subtitlul aliniat perfect sub logo, vizibil doar de la sm în sus */}
+                <span className="hidden sm:block text-[11px] font-bold uppercase tracking-[0.15em] bg-gradient-to-r from-blue-700 via-yellow-500 to-red-600 bg-clip-text text-transparent mt-1 transition-all group-hover:opacity-80 text-left">
+                  Gust autentic, de la oameni gospodari
                 </span>
               </div>
 
