@@ -266,7 +266,7 @@ const App: React.FC = () => {
                 onClick={() => navigate("/")}
               >
                 <img
-                  src="./assets/local.png"
+                  src="https://github.com/micuproducator-alt/StartupProducator/blob/main/frontend/assets/local.png?raw=true"
                   alt="MiculProducator Logo"
                   className="h-11 sm:h-16 w-auto object-contain object-left transition-transform group-hover:scale-102"
                 />
