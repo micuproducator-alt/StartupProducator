@@ -56,21 +56,30 @@ export const AdCard: React.FC<AdCardProps> = ({
     );
   };
   const adSlug = ad.slug || (ad as any).id;
+
+  // ==========================================
+  // 1. VARIANTA MINI (RANDARE OPTIMIZATĂ)
+  // ==========================================
   if (mini) {
     return (
       <div
         onClick={onClick}
         className="group bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden hover:shadow-md cursor-pointer flex flex-col h-full relative transition-all"
       >
-        <div className="relative h-32 w-full bg-stone-50">
+        <div className="relative h-32 w-full bg-stone-100 flex items-center justify-center overflow-hidden">
+          {/* Fundal gri pulsatil direct sub poză */}
+          {!imageLoaded && (
+            <div className="absolute inset-0 bg-stone-200 animate-pulse" />
+          )}
           <img
             src={mainImage}
             alt={adSlug}
             loading="lazy"
-            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+            decoding="async"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             onLoad={() => setImageLoaded(true)}
           />
-          <div className="absolute bottom-2 right-2">
+          <div className="absolute bottom-2 right-2 z-10">
             <span className="px-2 py-1 rounded-lg text-[10px] font-black bg-white/90 backdrop-blur-sm text-stone-900 shadow-sm border border-stone-100">
               {ad.price} <span className="text-[8px] opacity-60">RON</span>
             </span>
@@ -85,6 +94,9 @@ export const AdCard: React.FC<AdCardProps> = ({
     );
   }
 
+  // ==========================================
+  // 2. VARIANTA MARE (RANDARE OPTIMIZATĂ)
+  // ==========================================
   return (
     <div
       onClick={onClick}
@@ -95,15 +107,18 @@ export const AdCard: React.FC<AdCardProps> = ({
       }`}
     >
       {/* Container Imagine */}
-      <div className="relative h-72 w-full overflow-hidden bg-stone-50">
+      <div className="relative h-72 w-full overflow-hidden bg-stone-100 flex items-center justify-center">
+        {/* Placeholder-ul pulsează curat doar pe fundal până apare imaginea progresiv */}
         {!imageLoaded && (
-          <div className="absolute inset-0 bg-stone-100 animate-pulse z-10" />
+          <div className="absolute inset-0 bg-stone-200 animate-pulse z-0" />
         )}
 
         <img
           src={mainImage}
           alt={title}
-          className={`w-full h-full object-cover transform transition-all duration-700 ease-out group-hover:scale-110 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+          loading="lazy" // OPTIMIZARE: Încarcă doar când devine vizibil pe ecran
+          decoding="async" // OPTIMIZARE: Nu blochează restul site-ului în timp ce se procesează pixelii pozei
+          className="w-full h-full object-cover transform transition-all duration-700 ease-out group-hover:scale-110 relative z-10"
           onLoad={() => setImageLoaded(true)}
         />
 
@@ -154,7 +169,7 @@ export const AdCard: React.FC<AdCardProps> = ({
 
         {/* Carousel Controls */}
         {hasMultipleImages && (
-          <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+          <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity z-20">
             <button
               onClick={prevImage}
               className="p-2 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40"
@@ -223,7 +238,6 @@ export const AdCard: React.FC<AdCardProps> = ({
         </p>
 
         {/* Footer Card */}
-        {/* Footer Card */}
         <div className="mt-auto pt-6 border-t border-stone-50 flex items-center justify-between">
           <div className="flex items-center gap-2">
             {showRating && (
@@ -234,7 +248,6 @@ export const AdCard: React.FC<AdCardProps> = ({
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                   </svg>
                 </div>
-                {/* Adăugăm numărul de recenzii aici */}
                 {reviewCount > 0 && (
                   <span className="text-[9px] font-bold text-stone-400 border-l border-amber-200 pl-2">
                     {reviewCount} {reviewCount === 1 ? "recenzie" : "recenzii"}
@@ -243,7 +256,6 @@ export const AdCard: React.FC<AdCardProps> = ({
               </div>
             )}
 
-            {/* Badge-ul de BIO rămâne neschimbat */}
             {isBio && (
               <div className="text-[9px] font-black text-white bg-emerald-500 px-3 py-1.5 rounded-full uppercase tracking-widest shadow-sm">
                 Bio
