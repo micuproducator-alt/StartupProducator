@@ -47,7 +47,11 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
   useEffect(() => {
     const load = async () => {
       try {
-        setLoading(true);
+        // SCHIMBARE AICI: Dacă avem deja date inițiale, NU mai afișăm spinner-ul de loading
+        if (!initialData) {
+          setLoading(true);
+        }
+
         const data = await fetchAdById(id);
         console.log("OBIECTUL AD PRIMIT:", data);
         console.log("RECENZII IN OBIECT:", data.ads_reviews);
@@ -72,7 +76,13 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
       }
     };
     load();
-  }, [id]);
+  }, [id, initialData]); // SCHIMBARE AICI: Am adăugat initialData în dependențe
+  useEffect(() => {
+    if (initialData) {
+      setAd(initialData);
+      setLoading(false);
+    }
+  }, [initialData, id]);
 
   useEffect(() => {
     if (ad) {
@@ -203,12 +213,14 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
     }
   };
 
-  if (loading)
+  if (loading && !ad)
     return (
       <div className="p-12 text-center text-gray-500">
         Se încarcă detaliile...
       </div>
     );
+
+  // NEATINS: Asta o lași exact așa cum era, sub ea:
   if (!ad)
     return (
       <div className="p-12 text-center text-red-500">
@@ -321,6 +333,10 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
               src={ad.ads_images?.[currentImageIndex]?.url}
               alt=""
               className="w-full h-full object-cover"
+              // SCHIMBARE AICI: Îi spunem browserului să o descarce cu prioritate maximă
+              fetchPriority="high"
+              loading="eager"
+              decoding="async"
             />
           ) : (
             <div className="flex items-center justify-center h-full text-stone-300">
