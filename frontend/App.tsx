@@ -17,6 +17,7 @@ import {
   clearAllNotifications,
 } from "./services/mockBackend";
 import { fetchActiveAds } from "./services/adsService";
+// import DonationPage from "./components/DonatingPage"; // Ajustează calea în funcție de unde ai salvat fișierul
 
 /**
  * ROOT APPLICATION COMPONENT
@@ -31,6 +32,7 @@ const App: React.FC = () => {
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(false); // <--- Stare pentru modalul ghidului
+  const [isDonationModalOpen, setIsDonationModalOpen] = useState(false);
 
   // SELECTED AD: Used when opening the Ad Details modal from the Home grid.
   const [selectedAd, setSelectedAd] = useState<Ad | null>(null);
@@ -38,7 +40,7 @@ const App: React.FC = () => {
   // SHARED STATE: Favorites and Toasts are managed globally for cross-page consistency.
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const notifDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -234,6 +236,12 @@ const App: React.FC = () => {
       }
     }
 
+    // 🚀 EXACT AICI ADAUGI NOUA RUTĂ PENTRU DONAȚIE:
+    if (cleanPath === "/doneaza") {
+      return <DonationPage />;
+    }
+
+    // Aceasta rămâne ultima, pentru pagini inexistente
     return (
       <div className="p-24 text-center animate-fade-in">
         <h2 className="text-4xl font-black text-stone-200 mb-4">404</h2>
@@ -275,6 +283,27 @@ const App: React.FC = () => {
                   Gust autentic, de la oameni gospodari
                 </span>
               </div>
+              {/* BUTON DONAȚIE */}
+              {/* <button
+                onClick={() => setIsDonationModalOpen(true)}
+                className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl hover:from-amber-600 hover:to-orange-600 shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 uppercase tracking-wider"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.5}
+                  stroke="currentColor"
+                  className="w-4 h-4 sm:w-5 h-5 animate-pulse"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
+                  />
+                </svg>
+                <span className="hidden xs:inline">Susține-ne</span>
+              </button> */}
 
               {/* NAVIGARE / BUTOANE COMPACTE ȘI ALINIATE */}
               <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
@@ -517,6 +546,13 @@ const App: React.FC = () => {
             onOpenPrivacy={() => setIsPrivacyModalOpen(true)}
           />
         </Modal>
+        {/* <Modal
+          isOpen={isDonationModalOpen}
+          onClose={() => setIsDonationModalOpen(false)}
+          title="Susține Platforma"
+        >
+          <DonationPage />
+        </Modal> */}
 
         {/* MODAL NOU: GHIDUL PLATFORMEI */}
         <Modal

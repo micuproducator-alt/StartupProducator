@@ -199,16 +199,23 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
       const imageUrls: string[] = [];
       for (const img of images) {
         const fileName = `${Math.random().toString(36).substring(7)}-${Date.now()}.${img.name.split(".").pop()}`;
+
+        // MODIFICARE AICI: Am adăugat cacheControl pentru a forța browserul să stocheze pozele local
         const { error: uploadError } = await supabase.storage
           .from("ad-images")
-          .upload(fileName, img);
+          .upload(fileName, img, {
+            cacheControl: "31536000", // Imaginile rămân salvate în cache-ul userului (viteza maximă la revenire)
+            upsert: false,
+          });
+
         if (uploadError) throw uploadError;
+
         const { data } = supabase.storage
           .from("ad-images")
           .getPublicUrl(fileName);
+
         if (data?.publicUrl) imageUrls.push(data.publicUrl);
       }
-
       const countyName =
         counties.find((c) => c.county_code === parseInt(selectedCountyCode))
           ?.name || "";
