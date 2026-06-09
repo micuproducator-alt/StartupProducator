@@ -1,5 +1,4 @@
-
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 
 interface ModalProps {
   isOpen: boolean;
@@ -8,55 +7,61 @@ interface ModalProps {
   children: React.ReactNode;
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+export const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+}) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
-    
+
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden'; // Prevent background scrolling
-      // Ideally, focus should be trapped here, but for basic a11y, we just ensure it's rendered correctly
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden"; // Prevent background scrolling
       modalRef.current?.focus();
     }
-    
+
     return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
     };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
   return (
-    <div 
-      className="fixed inset-0 z-50 overflow-y-auto" 
-      role="dialog" 
-      aria-modal="true" 
+    <div
+      className="fixed inset-0 z-50 overflow-y-auto"
+      role="dialog"
+      aria-modal="true"
       aria-labelledby="modal-title"
     >
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity backdrop-blur-sm animate-fade-in"
+      {/* Backdrop — FIX PENTRU TAILWIND v4 */}
+      <div
+        className="fixed inset-0 bg-black/50 transition-opacity backdrop-blur-sm animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       ></div>
 
       {/* Modal Panel */}
       <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-        <div 
+        <div
           ref={modalRef}
           tabIndex={-1}
           className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl animate-scale-in focus:outline-none"
         >
-          
           {/* Header */}
           <div className="bg-gray-50 px-4 py-3 sm:px-6 flex justify-between items-center border-b border-gray-200">
-            <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-              {title || 'Dialog'}
+            <h3
+              className="text-lg font-medium leading-6 text-gray-900"
+              id="modal-title"
+            >
+              {title || "Dialog"}
             </h3>
             <button
               type="button"
@@ -64,8 +69,18 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
               onClick={onClose}
               aria-label="Close modal"
             >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -76,7 +91,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
           </div>
         </div>
       </div>
-      
+
       <style>{`
         @keyframes fade-in {
           from { opacity: 0; }
