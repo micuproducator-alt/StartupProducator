@@ -22,7 +22,7 @@ export const Modal: React.FC<ModalProps> = ({
 
     if (isOpen) {
       document.addEventListener("keydown", handleEscape);
-      document.body.style.overflow = "hidden"; // Prevent background scrolling
+      document.body.style.overflow = "hidden"; // Blochează scroll-ul în spate
       modalRef.current?.focus();
     }
 
@@ -35,79 +35,61 @@ export const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
+    // Containerul mare ocupă tot ecranul și NU are fundal el însuși
     <div
       className="fixed inset-0 z-50 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
     >
-      {/* Backdrop — FIX PENTRU TAILWIND v4 */}
+      {/* BACKGROUND / BACKDROP - Folosește doar clase native Tailwind v4 */}
       <div
-        className="fixed inset-0 bg-black/50 transition-opacity backdrop-blur-sm animate-fade-in"
+        className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-200"
         onClick={onClose}
         aria-hidden="true"
-      ></div>
+      />
 
-      {/* Modal Panel */}
-      <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+      {/* Wrapper pentru centrarea panoului alb */}
+      <div className="flex min-h-screen items-center justify-center p-4 text-center">
+        {/* Fereastra Albă Propriu-Zisă (Modal Panel) */}
         <div
           ref={modalRef}
           tabIndex={-1}
-          className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl animate-scale-in focus:outline-none"
+          className="relative w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all border border-gray-100 focus:outline-none"
         >
-          {/* Header */}
-          <div className="bg-gray-50 px-4 py-3 sm:px-6 flex justify-between items-center border-b border-gray-200">
-            <h3
-              className="text-lg font-medium leading-6 text-gray-900"
-              id="modal-title"
-            >
+          {/* Header-ul ferestrei */}
+          <div className="bg-gray-50/70 px-4 py-3 sm:px-6 flex justify-between items-center border-b border-gray-200/60 backdrop-blur-xs">
+            <h3 className="text-lg font-bold text-gray-900" id="modal-title">
               {title || "Dialog"}
             </h3>
             <button
               type="button"
-              className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="rounded-xl p-1.5 bg-white border border-gray-200 text-gray-400 hover:text-gray-600 hover:border-gray-300 focus:outline-none transition-all active:scale-90"
               onClick={onClose}
               aria-label="Close modal"
             >
               <svg
-                className="h-6 w-6"
+                className="h-5 w-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
+                strokeWidth={2.5}
               >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
                   d="M6 18L18 6M6 6l12 12"
                 />
               </svg>
             </button>
           </div>
 
-          {/* Content */}
-          <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4 max-h-[80vh] overflow-y-auto">
+          {/* Conținutul din interiorul ferestrei */}
+          <div className="px-4 pt-5 pb-4 sm:p-6 max-h-[80vh] overflow-y-auto">
             {children}
           </div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes scale-in {
-          from { opacity: 0; transform: scale(0.95); }
-          to { opacity: 1; transform: scale(1); }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.2s ease-out forwards;
-        }
-        .animate-scale-in {
-          animation: scale-in 0.2s ease-out forwards;
-        }
-      `}</style>
     </div>
   );
 };
