@@ -210,7 +210,7 @@ export const Home: React.FC<HomeProps> = ({
     {
       id: "1",
       image:
-        "https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&q=80&w=2000",
+        "https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&q=70&w=800",
       title: "Hrană Curată de la Oameni Gospodari",
       description:
         "Conectăm producătorii locali din România direct cu masa ta.",

@@ -52,6 +52,9 @@ export const Carousel: React.FC<CarouselProps> = ({
               src={slide.image}
               alt={slide.title}
               className="w-full h-full object-cover opacity-60"
+              // ⚡️ ADAUGĂ ACESTE DOUĂ PARAMETRI AICI:
+              loading="eager"
+              fetchPriority="high"
             />
           </div>
 
