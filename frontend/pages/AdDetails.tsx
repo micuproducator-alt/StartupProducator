@@ -476,7 +476,9 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
             <h3 className="text-[10px] font-bold text-stone-400 uppercase tracking-[0.2em] mb-4">
               Descriere Produs
             </h3>
-            <div className="prose prose-stone max-w-none text-stone-600 bg-stone-50/50 p-8 rounded-[2rem] border border-stone-100 leading-relaxed font-medium">
+
+            {/* ⚡️ DOAR PE LINIA DE MAI JOS ADĂUGĂM: whitespace-pre-line */}
+            <div className="prose prose-stone max-w-none text-stone-600 bg-stone-50/50 p-8 rounded-[2rem] border border-stone-100 leading-relaxed font-medium whitespace-pre-line">
               {ad.description}
             </div>
           </div>
