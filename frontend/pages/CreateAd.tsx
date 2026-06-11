@@ -368,8 +368,8 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
                   </h3>
                   <div className="text-4xl font-black mb-6">
                     {displayPrice}{" "}
-                    <span className="text-sm">
-                      RON {isPromoFree && "• GRATIS"}
+                    <span className="text-sm text-red-600">
+                      RON {isPromoFree && " GRATIS"}
                     </span>
                   </div>
                   <ul className="space-y-3 mb-8">
