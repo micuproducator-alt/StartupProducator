@@ -4,7 +4,7 @@ import { generateSlug } from "../utils/slug";
 import { createFullAd } from "../services/adsService";
 import {
   Loader2,
-  Image as ImageIcon,
+  ImageIcon,
   CheckCircle2,
   AlertCircle,
   ChevronRight,
@@ -111,7 +111,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ⚡️ MODIFICARE CALCUL PREȚ: Dacă e pachetul Basic pe 30 de Zile, forțăm prețul la 0 RON pe ecran
+  // ⚡️ CALCUL INTERFAȚĂ: Forțăm prețul la 0 RON dacă e Basic la 30 de zile
   const totalPrice = useMemo(() => {
     if (!selectedPlan) return 0;
     if (selectedPlan.id === "basic" && selectedDuration.days === 30) {
@@ -222,6 +222,10 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
           ?.name || "";
       const adSlug = `${generateSlug(title)}-${Math.random().toString(36).substring(7)}`;
 
+      // ⚡️ VERIFICARE PACKET PROMOȚIONAL:
+      const isPromoFree =
+        selectedPlan!.id === "basic" && selectedDuration.days === 30;
+
       const resultAd = await createFullAd(
         {
           title,
@@ -234,6 +238,8 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
           categories: selectedCategories,
           duration: selectedDuration.days,
           plan_type: selectedPlan!.id,
+          // Dacă e cel gratis intră "active" direct în DB, altfel rămâne "pending" până la plată!
+          status: isPromoFree ? "active" : "pending",
         },
         imageUrls,
       );
@@ -253,18 +259,21 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
     }
   };
 
-  // ⚡️ FIX LOGICĂ PLATĂ: Interceptăm pachetul gratis direct aici, salvând situația!
+  // ⚡️ LOGICĂ FINALIZARE/PLATĂ DIFERENȚIATĂ:
   const handlePayment = async () => {
     if (!createdAdData || !selectedPlan) return;
 
-    // Scenariul de siguranță: dacă e cel de 0 RON, sărim peste Stripe și backend-ul lui problematic
-    if (selectedPlan.id === "basic" && selectedDuration.days === 30) {
-      console.log("🎁 Activare pachet promoțional Starter 30 zile gratuit.");
-      // Redirect direct către pagina ta de home cu succesul activat
+    const isPromoFree =
+      selectedPlan.id === "basic" && selectedDuration.days === 30;
+
+    // Cazul 1: Pachetul este cel gratuit. Sărim complet peste Stripe!
+    if (isPromoFree) {
+      console.log("🎁 Pachet gratuit Starter 30 zile finalizat cu succes.");
       window.location.href = "/?payment=success";
       return;
     }
 
+    // Cazul 2: Pachet normal cu plată. Trimitem utilizatorul securizat la Stripe!
     setLoading(true);
     setLoadingMessage("Te conectăm la Stripe...");
     try {
@@ -320,7 +329,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {PLANS.map((plan) => {
-              // Calculăm prețul special din interfață pentru a afișa corect utilizatorului
+              // Schimbăm dinamic prețul pe ecran ca să arate promoția curentă
               const isPromoFree =
                 plan.id === "basic" && selectedDuration.days === 30;
               const displayPrice = isPromoFree
@@ -344,7 +353,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
                   <div className="text-4xl font-black mb-6">
                     {displayPrice}{" "}
                     <span className="text-sm">
-                      RON {isPromoFree && "• GRATIS ACUM"}
+                      RON {isPromoFree && "• GRATIS"}
                     </span>
                   </div>
                   <ul className="space-y-3 mb-8">
@@ -596,7 +605,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
           <h2 className="text-2xl font-black mb-4">ANUNȚ SALVAT!</h2>
           <p className="text-stone-500 mb-10">
             {selectedPlan?.id === "basic" && selectedDuration.days === 30
-              ? "Apasă pe butonul de mai jos pentru a-ți activa anunțul gratuit!"
+              ? "Apasă pe butonul de mai jos pentru a-ți publica anunțul gratuit!"
               : "Finalizează plata securizată cu Stripe pentru a activa anunțul."}
           </p>
           <div className="bg-stone-50 p-6 rounded-[2rem] border-2 border-stone-100 mb-10 text-left">
@@ -623,7 +632,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
             className="w-full bg-emerald-600 text-white py-6 rounded-[1.5rem] font-black uppercase text-xs hover:bg-emerald-700 shadow-xl flex items-center justify-center gap-2"
           >
             {selectedPlan?.id === "basic" && selectedDuration.days === 30
-              ? "Activează Anunțul Gratuit"
+              ? "Publică Anunțul Gratuit"
               : "Plătește cu Stripe"}{" "}
             <ChevronRight className="w-4 h-4" />
           </button>
