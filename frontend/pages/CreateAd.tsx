@@ -243,8 +243,24 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
         },
         imageUrls,
       );
-
       if (resultAd) {
+        // ⚡️ REPARAȚIE FORCE-UPDATE ÎN SUPABASE:
+        // Dacă e pachetul moca, dăm o linie directă în DB și îi schimbăm statusul în "active" acum!
+        if (isPromoFree) {
+          console.log("⚡️ Forțăm activarea anunțului gratuit în DB...");
+
+          const { error: updateError } = await supabase
+            .from("ads") // Schimbă cu numele tabelului tău dacă nu se numește "ads" (ex: "listings" sau "anunturi")
+            .update({ status: "active" })
+            .eq("id", resultAd.id);
+
+          if (updateError) {
+            console.error("Eroare la activarea forțată:", updateError);
+          } else {
+            console.log("✅ Anunțul a fost activat direct în Supabase!");
+          }
+        }
+
         setCreatedAdData({
           adId: resultAd.id,
           plan_type: selectedPlan!.id,
