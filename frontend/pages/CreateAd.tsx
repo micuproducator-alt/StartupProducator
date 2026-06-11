@@ -372,7 +372,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
                       RON{" "}
                       {isPromoFree && (
                         <span className="ml-2 px-2 py-0.5 bg-emerald-100 text-emerald-700 font-black rounded-md animate-pulse">
-                          • GRATIS
+                          GRATIS
                         </span>
                       )}
                     </span>
