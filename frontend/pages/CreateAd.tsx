@@ -93,7 +93,6 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
   const [previews, setPreviews] = useState<string[]>([]);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-  // --- REPARATIE AICI: Numele coloanelor din DB ---
   const [counties, setCounties] = useState<
     { county_code: number; name: string }[]
   >([]);
@@ -112,8 +111,12 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // ⚡️ MODIFICARE CALCUL PREȚ: Dacă e pachetul Basic pe 30 de Zile, forțăm prețul la 0 RON pe ecran
   const totalPrice = useMemo(() => {
     if (!selectedPlan) return 0;
+    if (selectedPlan.id === "basic" && selectedDuration.days === 30) {
+      return 0;
+    }
     const unitDiscount = Math.ceil(
       selectedPlan.basePrice * (selectedDuration.discount / 100),
     );
@@ -127,11 +130,11 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
     fetch(`${apiUrl}/geo/counties`)
       .then((res) => res.json())
       .then((data) => {
-        console.log("Date primite județe:", data);
         setCounties(data);
       })
       .catch((err) => console.error(err));
   }, []);
+
   useEffect(() => {
     if (selectedCountyCode) {
       setLoadingGeo(true);
@@ -141,7 +144,6 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
       fetch(`${apiUrl}/geo/locations/${selectedCountyCode}`)
         .then((res) => res.json())
         .then((data) => {
-          console.log("Date primite orașe:", data);
           setAvailableCities(data);
           setCity("");
         })
@@ -200,11 +202,10 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
       for (const img of images) {
         const fileName = `${Math.random().toString(36).substring(7)}-${Date.now()}.${img.name.split(".").pop()}`;
 
-        // MODIFICARE AICI: Am adăugat cacheControl pentru a forța browserul să stocheze pozele local
         const { error: uploadError } = await supabase.storage
           .from("ad-images")
           .upload(fileName, img, {
-            cacheControl: "31536000", // Imaginile rămân salvate în cache-ul userului (viteza maximă la revenire)
+            cacheControl: "31536000",
             upsert: false,
           });
 
@@ -252,12 +253,21 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
     }
   };
 
+  // ⚡️ FIX LOGICĂ PLATĂ: Interceptăm pachetul gratis direct aici, salvând situația!
   const handlePayment = async () => {
     if (!createdAdData || !selectedPlan) return;
+
+    // Scenariul de siguranță: dacă e cel de 0 RON, sărim peste Stripe și backend-ul lui problematic
+    if (selectedPlan.id === "basic" && selectedDuration.days === 30) {
+      console.log("🎁 Activare pachet promoțional Starter 30 zile gratuit.");
+      // Redirect direct către pagina ta de home cu succesul activat
+      window.location.href = "/?payment=success";
+      return;
+    }
+
     setLoading(true);
     setLoadingMessage("Te conectăm la Stripe...");
     try {
-      // Preluăm URL-ul dinamic (live pe Vercel sau localhost pe PC)
       const apiUrl =
         import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
@@ -309,40 +319,51 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {PLANS.map((plan) => (
-              <div
-                key={plan.id}
-                onClick={() => {
-                  setSelectedPlan(plan);
-                  setStep("form");
-                }}
-                className="bg-white border-2 p-8 rounded-[2.5rem] cursor-pointer hover:border-emerald-500 transition-all group"
-              >
-                <h3 className="text-stone-400 font-black text-xs mb-4 uppercase">
-                  {plan.name}
-                </h3>
-                <div className="text-4xl font-black mb-6">
-                  {Math.ceil(
+            {PLANS.map((plan) => {
+              // Calculăm prețul special din interfață pentru a afișa corect utilizatorului
+              const isPromoFree =
+                plan.id === "basic" && selectedDuration.days === 30;
+              const displayPrice = isPromoFree
+                ? 0
+                : Math.ceil(
                     plan.basePrice * (1 - selectedDuration.discount / 100),
-                  ) * selectedDuration.multiplier}{" "}
-                  <span className="text-sm">RON</span>
+                  ) * selectedDuration.multiplier;
+
+              return (
+                <div
+                  key={plan.id}
+                  onClick={() => {
+                    setSelectedPlan(plan);
+                    setStep("form");
+                  }}
+                  className="bg-white border-2 p-8 rounded-[2.5rem] cursor-pointer hover:border-emerald-500 transition-all group"
+                >
+                  <h3 className="text-stone-400 font-black text-xs mb-4 uppercase">
+                    {plan.name}
+                  </h3>
+                  <div className="text-4xl font-black mb-6">
+                    {displayPrice}{" "}
+                    <span className="text-sm">
+                      RON {isPromoFree && "• GRATIS ACUM"}
+                    </span>
+                  </div>
+                  <ul className="space-y-3 mb-8">
+                    {plan.features.map((f, i) => (
+                      <li
+                        key={i}
+                        className="flex items-center text-xs font-bold text-stone-600"
+                      >
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500 mr-2" />{" "}
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="w-full bg-stone-900 text-white text-center py-4 rounded-2xl text-[10px] font-black uppercase group-hover:bg-emerald-600 transition-colors">
+                    Selectează
+                  </div>
                 </div>
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((f, i) => (
-                    <li
-                      key={i}
-                      className="flex items-center text-xs font-bold text-stone-600"
-                    >
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500 mr-2" />{" "}
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <div className="w-full bg-stone-900 text-white text-center py-4 rounded-2xl text-[10px] font-black uppercase group-hover:bg-emerald-600 transition-colors">
-                  Selectează
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -440,9 +461,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
             placeholder="Descriere"
           />
 
-          {/* SECȚIUNEA DE FOTOGRAFII ACTUALIZATĂ */}
           <div className="space-y-4">
-            {/* Lista cu pozele deja încărcate */}
             {previews.length > 0 && (
               <div className="grid grid-cols-5 gap-2">
                 {previews.map((src, idx) => (
@@ -470,7 +489,6 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
               </div>
             )}
 
-            {/* Butonul mare stilizat tip cameră foto */}
             {previews.length < 5 && (
               <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-stone-300 rounded-2xl bg-stone-50 cursor-pointer hover:bg-stone-100 p-4 text-center transition-all">
                 <div className="bg-emerald-100 p-3 rounded-full mb-2">
@@ -496,7 +514,6 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
                     />
                   </svg>
                 </div>
-                {/* Am actualizat textul ca să fie clar că se pot încărca și imagini */}
                 <span className="text-sm font-black text-stone-800">
                   Apasă aici și adaugă poze la produs
                 </span>
@@ -512,7 +529,6 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
                   className="hidden"
                   multiple
                   accept="image/*"
-                  // AM ȘTERS LINIA: capture="environment" pentru a debloca ambele opțiuni pe mobil!
                 />
               </label>
             )}
@@ -579,7 +595,9 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
           </div>
           <h2 className="text-2xl font-black mb-4">ANUNȚ SALVAT!</h2>
           <p className="text-stone-500 mb-10">
-            Finalizează plata securizată cu Stripe pentru a activa anunțul.
+            {selectedPlan?.id === "basic" && selectedDuration.days === 30
+              ? "Apasă pe butonul de mai jos pentru a-ți activa anunțul gratuit!"
+              : "Finalizează plata securizată cu Stripe pentru a activa anunțul."}
           </p>
           <div className="bg-stone-50 p-6 rounded-[2rem] border-2 border-stone-100 mb-10 text-left">
             <div className="flex justify-between mb-4">
@@ -587,7 +605,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
                 Pachet
               </span>
               <span className="font-black text-stone-900">
-                {selectedPlan?.name}
+                {selectedPlan?.name} ({selectedDuration.label})
               </span>
             </div>
             <div className="flex justify-between border-t border-stone-200 pt-4">
@@ -604,7 +622,10 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
             onClick={handlePayment}
             className="w-full bg-emerald-600 text-white py-6 rounded-[1.5rem] font-black uppercase text-xs hover:bg-emerald-700 shadow-xl flex items-center justify-center gap-2"
           >
-            Plătește cu Stripe <ChevronRight className="w-4 h-4" />
+            {selectedPlan?.id === "basic" && selectedDuration.days === 30
+              ? "Activează Anunțul Gratuit"
+              : "Plătește cu Stripe"}{" "}
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       )}
