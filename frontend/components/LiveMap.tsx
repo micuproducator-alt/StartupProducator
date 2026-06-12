@@ -111,9 +111,10 @@ export const LiveMap: React.FC<LiveMapProps> = ({
         style={{ height: "100%", width: "100%" }}
         scrollWheelZoom={false}
       >
+        {/* ⚡️ AICI S-A FĂCUT UPGRADE-UL LA HARTA MODERNĂ CLARĂ */}
         <TileLayer
-          attribution="&copy; OpenStreetMap"
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
 
         {/* Ruta desenată */}
@@ -123,7 +124,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
             pathOptions={{
               color: "#10b981",
               weight: 5,
-              opacity: 0.5,
+              opacity: 0.7,
               dashArray: "12, 12",
               lineCap: "round",
             }}
@@ -171,7 +172,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
           const baseCoords = (COUNTY_COORDINATES as any)[ad.county];
           if (!baseCoords) return null;
 
-          // Folosim ID-ul pentru un offset determinist (nu sar markerii la fiecare scroll)
+          // Folosim ID-ul pentru un offset determinist
           const seed = ad.id
             .split("")
             .reduce((acc, char) => acc + char.charCodeAt(0), 0);
