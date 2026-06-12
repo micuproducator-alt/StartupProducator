@@ -57,7 +57,6 @@ interface LiveMapProps {
   startCounty?: string;
   endCounty?: string;
   onMarkerClick?: (ad: Ad) => void;
-  // Callback opțional ca să trimiți înapoi în aplicație detaliile rutei active (ex: distanță, timp sau puncte)
   onActiveRouteInfo?: (info: { distance: number; duration: number }) => void;
 }
 
@@ -94,11 +93,9 @@ export const LiveMap: React.FC<LiveMapProps> = ({
 }) => {
   const romaniaCenter: [number, number] = [45.9432, 24.9668];
 
-  // ⚡️ STATE-URI PENTRU RUTE AUTOMATE GENERATE DIN API
   const [fetchedRoutes, setFetchedRoutes] = useState<any[]>([]);
   const [activeRouteIndex, setActiveRouteIndex] = useState<number>(0);
 
-  // Extrege coordonatele din COUNTY_COORDINATES pe baza numelui județului
   const startCoords = useMemo(
     () => (startCounty ? (COUNTY_COORDINATES as any)[startCounty] : null),
     [startCounty],
@@ -108,7 +105,6 @@ export const LiveMap: React.FC<LiveMapProps> = ({
     [endCounty],
   );
 
-  // ⚡️ EFECT CARE APLEAZĂ MOTORUL DE ROUTING ÎN MOD AUTOMAT PENTRU TOATĂ HARTA
   useEffect(() => {
     if (!startCoords || !endCoords) {
       setFetchedRoutes([]);
@@ -117,29 +113,26 @@ export const LiveMap: React.FC<LiveMapProps> = ({
 
     const fetchRealRoutes = async () => {
       try {
-        // Apelăm API-ul public și gratuit OSRM pentru a cere rute alternative (alternatives=true) și geometrii complete (overview=full)
         const url = `https://router.project-osrm.org/route/v1/driving/${startCoords.lng},${startCoords.lat};${endCoords.lng},${endCoords.lat}?alternatives=true&overview=full&geometries=geojson`;
 
         const response = await fetch(url);
         const data = await response.json();
 
         if (data.code === "Ok" && data.routes) {
-          // Mapăm coordonatele primite [lng, lat] în formatul cerut de Leaflet [lat, lng]
           const formattedRoutes = data.routes.map((route: any) => {
             const leafletCoords = route.geometry.coordinates.map(
               (coord: [number, number]) => [coord[1], coord[0]],
             );
             return {
               coordinates: leafletCoords,
-              distance: route.distance, // în metri
-              duration: route.duration, // în secunde
+              distance: route.distance,
+              duration: route.duration,
             };
           });
 
           setFetchedRoutes(formattedRoutes);
-          setActiveRouteIndex(0); // Resetăm pe prima rută (cea mai rapidă) de fiecare dată când se schimbă destinațiile
+          setActiveRouteIndex(0);
 
-          // Anunțăm părintele despre distanța și timpul traseului principal, dacă se dorește afișarea în UI
           if (formattedRoutes[0] && onActiveRouteInfo) {
             onActiveRouteInfo({
               distance: Math.round(formattedRoutes[0].distance / 1000),
@@ -158,7 +151,6 @@ export const LiveMap: React.FC<LiveMapProps> = ({
     fetchRealRoutes();
   }, [startCoords, endCoords]);
 
-  // Punctele rutei active folosite pentru auto-centrare
   const activeRoutePoints = useMemo(() => {
     return fetchedRoutes[activeRouteIndex]?.coordinates || [];
   }, [fetchedRoutes, activeRouteIndex]);
@@ -176,33 +168,47 @@ export const LiveMap: React.FC<LiveMapProps> = ({
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
 
-        {/* ⚡️ DESENĂM DINAMIC TOATE RUTELE ALTERNATIVE RETURNATE DE MOTORUL DE CĂUTARE */}
+        {/* ⚡️ CORECCȚIE TRACKING CLICK RUTE ALTERNATIVE */}
         {fetchedRoutes.map((route, index) => {
           const isActive = index === activeRouteIndex;
 
+          const handleRouteChange = () => {
+            setActiveRouteIndex(index);
+            if (onActiveRouteInfo) {
+              onActiveRouteInfo({
+                distance: Math.round(route.distance / 1000),
+                duration: Math.round(route.duration / 60),
+              });
+            }
+          };
+
           return (
-            <Polyline
-              key={`osrm-route-${index}`}
-              positions={route.coordinates}
-              eventHandlers={{
-                click: () => {
-                  setActiveRouteIndex(index);
-                  if (onActiveRouteInfo) {
-                    onActiveRouteInfo({
-                      distance: Math.round(route.distance / 1000),
-                      duration: Math.round(route.duration / 60),
-                    });
-                  }
-                },
-              }}
-              pathOptions={{
-                color: isActive ? "#10b981" : "#94a3b8", // Verde pentru activă, gri pentru opțiuni alternative
-                weight: isActive ? 6 : 4,
-                opacity: isActive ? 0.9 : 0.4,
-                dashArray: isActive ? "12, 12" : "6, 6",
-                lineCap: "round",
-              }}
-            />
+            <React.Fragment key={`osrm-route-group-${index}`}>
+              {/* 1. LINIA INVIZIBILĂ DE CAPTURĂ (Zonă de click masivă stil Uber/Bolt) */}
+              <Polyline
+                positions={route.coordinates}
+                eventHandlers={{ click: handleRouteChange }}
+                pathOptions={{
+                  color: "transparent",
+                  weight: 25, // O lățime uriașă de 25px invizibilă pe care poți da click lejer
+                  interactive: true,
+                }}
+              />
+
+              {/* 2. LINIA VIZIBILĂ GRAFICĂ (Cea pe care o vede utilizatorul) */}
+              <Polyline
+                positions={route.coordinates}
+                eventHandlers={{ click: handleRouteChange }}
+                pathOptions={{
+                  color: isActive ? "#10b981" : "#94a3b8",
+                  weight: isActive ? 6 : 4,
+                  opacity: isActive ? 0.9 : 0.4,
+                  dashArray: isActive ? "12, 12" : "6, 6",
+                  lineCap: "round",
+                  interactive: true,
+                }}
+              />
+            </React.Fragment>
           );
         })}
 
