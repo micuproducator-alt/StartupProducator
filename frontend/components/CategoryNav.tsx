@@ -41,79 +41,141 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
   selectedCategory,
   onSelectCategory,
 }) => {
-  // State pentru a controla dacă grid-ul este extins pe mobil
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  // Pe mobil afișăm doar primele 3 categorii dacă meniul nu este extins
-  const visibleCategories = isExpanded
-    ? PRODUCT_CATEGORIES
-    : PRODUCT_CATEGORIES.slice(0, 3);
+  // Control pentru dropdown-ul fin de pe mobil
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
-    <div className="mb-8 px-2 transition-all duration-300">
-      {/* HEADER: TITLU + ȘTERGE FILTRU */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-black text-stone-900 uppercase tracking-tight">
-          Explorați Categorii
-        </h2>
+    /* ⚡️ FIXATĂ LA SCROLL: Se prinde automat sub bara ta de navigare principală */
+    <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-stone-100 py-3 px-4 mb-6 transition-all">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        {/* TITLU DISCRET / STATUT (Ascuns pe ecrane foarte mici pentru a economisi spațiu) */}
+        <span className="hidden sm:inline-block text-xs font-black uppercase tracking-wider text-stone-400">
+          Filtrare:
+        </span>
+
+        {/* 📱 1. DESIGN PENTRU MOBIL: UN DROPDOWN ULTRA-FIN ȘI COMPACT */}
+        <div className="relative block md:hidden w-full sm:w-64">
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="w-full flex items-center justify-between bg-stone-50 border border-stone-200 hover:border-stone-300 px-4 py-2.5 rounded-xl text-left outline-none transition-all"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-base">
+                {selectedCategory ? getCategoryIcon(selectedCategory) : "🧺"}
+              </span>
+              <span className="text-xs font-bold uppercase tracking-tight text-stone-800">
+                {selectedCategory || "Toate Categoriile"}
+              </span>
+            </div>
+            {/* Săgeată discretă de dropdown */}
+            <svg
+              className={`w-4 h-4 text-stone-400 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.5"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+
+          {/* MENIUL CONTEXTUAL DIN DROPDOWN (Apare elegant sub buton) */}
+          {isDropdownOpen && (
+            <>
+              {/* Click-away overlay invizibil ca să se închidă la click în exterior */}
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setIsDropdownOpen(false)}
+              />
+
+              <div className="absolute left-0 right-0 mt-1.5 bg-white border border-stone-100 rounded-xl shadow-xl max-h-60 overflow-y-auto z-20 p-1.5 space-y-0.5 animate-in fade-in slide-in-from-top-2 duration-150">
+                {/* Opțiunea implicită: Resetează filtrul */}
+                <button
+                  onClick={() => {
+                    onSelectCategory("");
+                    setIsDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-xs font-bold uppercase tracking-tight transition-colors ${
+                    !selectedCategory
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "text-stone-500 hover:bg-stone-50"
+                  }`}
+                >
+                  <span>🧺</span> Toate Categoriile
+                </button>
+
+                {/* Toate celelalte categorii din listă */}
+                {PRODUCT_CATEGORIES.map((cat) => {
+                  const isSelected = selectedCategory === cat;
+                  return (
+                    <button
+                      key={`drop-${cat}`}
+                      onClick={() => {
+                        onSelectCategory(isSelected ? "" : cat);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-xs font-bold uppercase tracking-tight transition-colors ${
+                        isSelected
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "text-stone-500 hover:bg-stone-50"
+                      }`}
+                    >
+                      <span className="text-sm">{getCategoryIcon(cat)}</span>
+                      <span className="truncate">{cat}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* 💻 2. DESIGN PENTRU DESKTOP: BARA DE "PILLS" MINIMALISTĂ (Se vede doar de la md: în sus) */}
+        <div className="hidden md:flex flex-wrap items-center gap-2 flex-grow">
+          {/* Pastila pentru Toate Categoriile */}
+          <button
+            onClick={() => onSelectCategory("")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-black uppercase tracking-tight transition-all ${
+              !selectedCategory
+                ? "bg-stone-900 border-stone-900 text-white shadow-sm"
+                : "bg-white border-stone-200 text-stone-500 hover:border-stone-400 hover:text-stone-900"
+            }`}
+          >
+            <span>🧺</span> Toate
+          </button>
+
+          {PRODUCT_CATEGORIES.map((cat) => {
+            const isSelected = selectedCategory === cat;
+            return (
+              <button
+                key={`pill-${cat}`}
+                onClick={() => onSelectCategory(isSelected ? "" : cat)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-black uppercase tracking-tight transition-all ${
+                  isSelected
+                    ? "bg-emerald-600 border-emerald-600 text-white shadow-sm"
+                    : "bg-white border-stone-200 text-stone-500 hover:border-stone-400 hover:text-stone-900"
+                }`}
+              >
+                <span className="text-xs">{getCategoryIcon(cat)}</span>
+                <span>{cat}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* SECȚIUNE DISCRETĂ DE RESET FILTRU RAPID (Apare doar pe Desktop când e ceva selectat) */}
         {selectedCategory && (
           <button
             onClick={() => onSelectCategory("")}
-            className="text-xs font-bold text-rose-500 hover:text-rose-600 uppercase tracking-widest bg-rose-50 px-3 py-1 rounded-full transition-colors"
+            className="hidden md:block text-[10px] font-black text-rose-500 hover:text-rose-600 uppercase tracking-widest flex-shrink-0"
           >
-            Șterge Filtru
+            Șterge [x]
           </button>
         )}
-      </div>
-
-      {/* ⚡️ GRID EXTENSIBIL & RESPONSIVE */}
-      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 gap-x-3 gap-y-5 md:gap-5">
-        {/* Mapăm categoriile vizibile (3 sau toate pe mobil, obligatoriu TOATE pe desktop) */}
-        {(typeof window !== "undefined" && window.innerWidth >= 768
-          ? PRODUCT_CATEGORIES
-          : visibleCategories
-        ).map((cat) => {
-          const isSelected = selectedCategory === cat;
-          return (
-            <button
-              key={cat}
-              onClick={() => onSelectCategory(isSelected ? "" : cat)}
-              className="flex flex-col items-center group outline-none w-full"
-            >
-              <div
-                className={`w-16 h-16 md:w-20 md:h-20 rounded-[1.5rem] flex items-center justify-center text-3xl shadow-sm border-2 transition-all duration-300 transform ${
-                  isSelected
-                    ? "bg-emerald-500 border-emerald-500 text-white shadow-emerald-200 scale-105 rotate-3"
-                    : "bg-white border-stone-100 text-gray-700 hover:border-emerald-200 hover:shadow-md"
-                }`}
-              >
-                {getCategoryIcon(cat)}
-              </div>
-              <span
-                className={`mt-2.5 text-[10px] md:text-[11px] font-black uppercase tracking-tighter text-center w-full leading-tight transition-colors truncate px-1 ${
-                  isSelected
-                    ? "text-emerald-600"
-                    : "text-stone-400 group-hover:text-stone-900"
-                }`}
-              >
-                {cat}
-              </span>
-            </button>
-          );
-        })}
-
-        {/* ⚡️ BUTONUL DE TOGGLE (Apare doar pe mobil și se transformă din Plus în Minus) */}
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="md:hidden flex flex-col items-center group outline-none w-full"
-        >
-          <div className="w-16 h-16 rounded-[1.5rem] flex items-center justify-center text-xl shadow-sm border-2 border-dashed border-stone-200 bg-stone-50/50 text-stone-500 group-hover:border-emerald-500 group-hover:text-emerald-600 transition-all">
-            {isExpanded ? "✕" : "＋"}
-          </div>
-          <span className="mt-2.5 text-[10px] font-black uppercase tracking-tighter text-center text-stone-400 group-hover:text-stone-900">
-            {isExpanded ? "Mai puțin" : "Toate"}
-          </span>
-        </button>
       </div>
     </div>
   );
