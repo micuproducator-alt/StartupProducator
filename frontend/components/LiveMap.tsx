@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -54,13 +54,13 @@ const endIcon = createDivIcon(
 
 interface LiveMapProps {
   ads: Ad[];
-  routeCounties: string[];
   startCounty?: string;
   endCounty?: string;
   onMarkerClick?: (ad: Ad) => void;
+  // Callback opțional ca să trimiți înapoi în aplicație detaliile rutei active (ex: distanță, timp sau puncte)
+  onActiveRouteInfo?: (info: { distance: number; duration: number }) => void;
 }
 
-// Componentă pentru a forța redimensionarea hărții când se schimbă containerul
 const MapInvalidator: React.FC = () => {
   const map = useMap();
   useEffect(() => {
@@ -72,7 +72,6 @@ const MapInvalidator: React.FC = () => {
   return null;
 };
 
-// Componentă pentru auto-centrare pe punctele de pe rută
 const MapAutoCenter: React.FC<{ points: [number, number][] }> = ({
   points,
 }) => {
@@ -80,7 +79,7 @@ const MapAutoCenter: React.FC<{ points: [number, number][] }> = ({
   useEffect(() => {
     if (points.length > 0) {
       const bounds = L.latLngBounds(points);
-      map.fitBounds(bounds, { padding: [70, 70], maxZoom: 9 });
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 9 });
     }
   }, [points, map]);
   return null;
@@ -88,20 +87,81 @@ const MapAutoCenter: React.FC<{ points: [number, number][] }> = ({
 
 export const LiveMap: React.FC<LiveMapProps> = ({
   ads = [],
-  routeCounties = [],
   startCounty,
   endCounty,
   onMarkerClick,
+  onActiveRouteInfo,
 }) => {
   const romaniaCenter: [number, number] = [45.9432, 24.9668];
 
-  // Calculăm punctele pentru polilinie și bounds
-  const polylinePoints = useMemo(() => {
-    return routeCounties
-      .map((c) => (COUNTY_COORDINATES as any)[c])
-      .filter(Boolean)
-      .map((coords) => [coords.lat, coords.lng] as [number, number]);
-  }, [routeCounties]);
+  // ⚡️ STATE-URI PENTRU RUTE AUTOMATE GENERATE DIN API
+  const [fetchedRoutes, setFetchedRoutes] = useState<any[]>([]);
+  const [activeRouteIndex, setActiveRouteIndex] = useState<number>(0);
+
+  // Extrege coordonatele din COUNTY_COORDINATES pe baza numelui județului
+  const startCoords = useMemo(
+    () => (startCounty ? (COUNTY_COORDINATES as any)[startCounty] : null),
+    [startCounty],
+  );
+  const endCoords = useMemo(
+    () => (endCounty ? (COUNTY_COORDINATES as any)[endCounty] : null),
+    [endCounty],
+  );
+
+  // ⚡️ EFECT CARE APLEAZĂ MOTORUL DE ROUTING ÎN MOD AUTOMAT PENTRU TOATĂ HARTA
+  useEffect(() => {
+    if (!startCoords || !endCoords) {
+      setFetchedRoutes([]);
+      return;
+    }
+
+    const fetchRealRoutes = async () => {
+      try {
+        // Apelăm API-ul public și gratuit OSRM pentru a cere rute alternative (alternatives=true) și geometrii complete (overview=full)
+        const url = `https://router.project-osrm.org/route/v1/driving/${startCoords.lng},${startCoords.lat};${endCoords.lng},${endCoords.lat}?alternatives=true&overview=full&geometries=geojson`;
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.code === "Ok" && data.routes) {
+          // Mapăm coordonatele primite [lng, lat] în formatul cerut de Leaflet [lat, lng]
+          const formattedRoutes = data.routes.map((route: any) => {
+            const leafletCoords = route.geometry.coordinates.map(
+              (coord: [number, number]) => [coord[1], coord[0]],
+            );
+            return {
+              coordinates: leafletCoords,
+              distance: route.distance, // în metri
+              duration: route.duration, // în secunde
+            };
+          });
+
+          setFetchedRoutes(formattedRoutes);
+          setActiveRouteIndex(0); // Resetăm pe prima rută (cea mai rapidă) de fiecare dată când se schimbă destinațiile
+
+          // Anunțăm părintele despre distanța și timpul traseului principal, dacă se dorește afișarea în UI
+          if (formattedRoutes[0] && onActiveRouteInfo) {
+            onActiveRouteInfo({
+              distance: Math.round(formattedRoutes[0].distance / 1000),
+              duration: Math.round(formattedRoutes[0].duration / 60),
+            });
+          }
+        }
+      } catch (error) {
+        console.error(
+          "Eroare la calcularea automată a rutelor alternative:",
+          error,
+        );
+      }
+    };
+
+    fetchRealRoutes();
+  }, [startCoords, endCoords]);
+
+  // Punctele rutei active folosite pentru auto-centrare
+  const activeRoutePoints = useMemo(() => {
+    return fetchedRoutes[activeRouteIndex]?.coordinates || [];
+  }, [fetchedRoutes, activeRouteIndex]);
 
   return (
     <div className="w-full h-full min-h-[400px] relative z-0">
@@ -111,34 +171,45 @@ export const LiveMap: React.FC<LiveMapProps> = ({
         style={{ height: "100%", width: "100%" }}
         scrollWheelZoom={false}
       >
-        {/* ⚡️ VARIANTA 100% GRATUITĂ ȘI PREMIUM: Stilul CartoDB Voyager */}
-        {/* Are străzi bine definite, culori soft și arată exact ca o aplicație modernă de ridesharing/livrări */}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
 
-        {/* Ruta desenată */}
-        {polylinePoints.length > 1 && (
-          <Polyline
-            positions={polylinePoints}
-            pathOptions={{
-              color: "#10b981",
-              weight: 6,
-              opacity: 0.8,
-              dashArray: "12, 12",
-              lineCap: "round",
-            }}
-          />
-        )}
+        {/* ⚡️ DESENĂM DINAMIC TOATE RUTELE ALTERNATIVE RETURNATE DE MOTORUL DE CĂUTARE */}
+        {fetchedRoutes.map((route, index) => {
+          const isActive = index === activeRouteIndex;
+
+          return (
+            <Polyline
+              key={`osrm-route-${index}`}
+              positions={route.coordinates}
+              eventHandlers={{
+                click: () => {
+                  setActiveRouteIndex(index);
+                  if (onActiveRouteInfo) {
+                    onActiveRouteInfo({
+                      distance: Math.round(route.distance / 1000),
+                      duration: Math.round(route.duration / 60),
+                    });
+                  }
+                },
+              }}
+              pathOptions={{
+                color: isActive ? "#10b981" : "#94a3b8", // Verde pentru activă, gri pentru opțiuni alternative
+                weight: isActive ? 6 : 4,
+                opacity: isActive ? 0.9 : 0.4,
+                dashArray: isActive ? "12, 12" : "6, 6",
+                lineCap: "round",
+              }}
+            />
+          );
+        })}
 
         {/* Marker Plecare */}
-        {startCounty && (COUNTY_COORDINATES as any)[startCounty] && (
+        {startCoords && (
           <Marker
-            position={[
-              (COUNTY_COORDINATES as any)[startCounty].lat,
-              (COUNTY_COORDINATES as any)[startCounty].lng,
-            ]}
+            position={[startCoords.lat, startCoords.lng]}
             icon={startIcon}
           >
             <Popup className="custom-popup">
@@ -151,14 +222,8 @@ export const LiveMap: React.FC<LiveMapProps> = ({
         )}
 
         {/* Marker Sosire */}
-        {endCounty && (COUNTY_COORDINATES as any)[endCounty] && (
-          <Marker
-            position={[
-              (COUNTY_COORDINATES as any)[endCounty].lat,
-              (COUNTY_COORDINATES as any)[endCounty].lng,
-            ]}
-            icon={endIcon}
-          >
+        {endCoords && (
+          <Marker position={[endCoords.lat, endCoords.lng]} icon={endIcon}>
             <Popup>
               <div className="font-black text-[10px] uppercase tracking-widest text-rose-600">
                 Destinație
@@ -173,7 +238,6 @@ export const LiveMap: React.FC<LiveMapProps> = ({
           const baseCoords = (COUNTY_COORDINATES as any)[ad.county];
           if (!baseCoords) return null;
 
-          // Folosim ID-ul pentru un offset determinist
           const seed = ad.id
             .split("")
             .reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -225,7 +289,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
           );
         })}
 
-        <MapAutoCenter points={polylinePoints} />
+        <MapAutoCenter points={activeRoutePoints} />
         <MapInvalidator />
       </MapContainer>
     </div>
