@@ -41,35 +41,81 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
   selectedCategory,
   onSelectCategory,
 }) => {
-  // Control pentru dropdown-ul fin de pe mobil
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
-    /* ⚡️ FIXATĂ LA SCROLL: Se prinde automat sub bara ta de navigare principală */
-    <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-stone-100 py-3 px-4 mb-6 transition-all">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        {/* TITLU DISCRET / STATUT (Ascuns pe ecrane foarte mici pentru a economisi spațiu) */}
-        <span className="hidden sm:inline-block text-xs font-black uppercase tracking-wider text-stone-400">
-          Filtrare:
-        </span>
+    <>
+      {/* ========================================== */}
+      {/* 💻 STRUCTURA 100% ORIGINALĂ PENTRU DESKTOP */}
+      {/* ========================================== */}
+      <div className="hidden md:block mb-8">
+        <div className="flex items-center justify-between mb-6 px-2">
+          <h2 className="text-xl font-black text-stone-900 uppercase tracking-tight">
+            Explorați Categorii
+          </h2>
+          {selectedCategory && (
+            <button
+              onClick={() => onSelectCategory("")}
+              className="text-xs font-bold text-rose-500 hover:text-rose-600 uppercase tracking-widest bg-rose-50 px-3 py-1 rounded-full transition-colors"
+            >
+              Șterge Filtru
+            </button>
+          )}
+        </div>
 
-        {/* 📱 1. DESIGN PENTRU MOBIL: UN DROPDOWN ULTRA-FIN ȘI COMPACT */}
-        <div className="relative block md:hidden w-full sm:w-64">
+        <div className="flex space-x-5 overflow-x-auto pb-4 scrollbar-hide snap-x">
+          {PRODUCT_CATEGORIES.map((cat) => {
+            const isSelected = selectedCategory === cat;
+            return (
+              <button
+                key={`desktop-${cat}`}
+                onClick={() => onSelectCategory(isSelected ? "" : cat)}
+                className="flex-shrink-0 flex flex-col items-center group snap-start outline-none"
+              >
+                <div
+                  className={`w-16 h-16 md:w-20 md:h-20 rounded-[1.5rem] flex items-center justify-center text-3xl shadow-sm border-2 transition-all duration-300 transform ${
+                    isSelected
+                      ? "bg-emerald-500 border-emerald-500 text-white shadow-emerald-200 scale-105 rotate-3"
+                      : "bg-white border-stone-100 text-gray-700 hover:border-emerald-200 hover:shadow-md"
+                  }`}
+                >
+                  {getCategoryIcon(cat)}
+                </div>
+                <span
+                  className={`mt-3 text-[11px] font-black uppercase tracking-tighter text-center w-24 leading-tight transition-colors ${
+                    isSelected
+                      ? "text-emerald-600"
+                      : "text-stone-400 group-hover:text-stone-900"
+                  }`}
+                >
+                  {cat}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ========================================== */}
+      {/* 📱 STRUCTURA FILTRU IN STÂNGA PENTRU MOBIL  */}
+      {/* ========================================== */}
+      <div className="block md:hidden sticky top-3 left-4 z-40 w-fit mb-4">
+        <div className="relative">
+          {/* Butonul minimalist tip Pill - Lipit pe ecran în stânga */}
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="w-full flex items-center justify-between bg-stone-50 border border-stone-200 hover:border-stone-300 px-4 py-2.5 rounded-xl text-left outline-none transition-all"
+            className="flex items-center gap-2 bg-white/90 backdrop-blur-md border border-stone-200 shadow-lg px-4 py-2.5 rounded-full outline-none transition-all active:scale-95"
           >
-            <div className="flex items-center gap-2">
-              <span className="text-base">
-                {selectedCategory ? getCategoryIcon(selectedCategory) : "🧺"}
-              </span>
-              <span className="text-xs font-bold uppercase tracking-tight text-stone-800">
-                {selectedCategory || "Toate Categoriile"}
-              </span>
-            </div>
-            {/* Săgeată discretă de dropdown */}
+            <span className="text-base">
+              {selectedCategory ? getCategoryIcon(selectedCategory) : "🧺"}
+            </span>
+            <span className="text-xs font-black uppercase tracking-tight text-stone-800">
+              {selectedCategory || "Categorii"}
+            </span>
             <svg
-              className={`w-4 h-4 text-stone-400 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
+              className={`w-3.5 h-3.5 text-stone-500 transition-transform duration-200 ${
+                isDropdownOpen ? "rotate-180" : ""
+              }`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -83,23 +129,23 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
             </svg>
           </button>
 
-          {/* MENIUL CONTEXTUAL DIN DROPDOWN (Apare elegant sub buton) */}
+          {/* Dropdown-ul fin care face expand direct sub buton */}
           {isDropdownOpen && (
             <>
-              {/* Click-away overlay invizibil ca să se închidă la click în exterior */}
+              {/* Overlay invizibil pentru a închide dropdown-ul la click în exterior */}
               <div
                 className="fixed inset-0 z-10"
                 onClick={() => setIsDropdownOpen(false)}
               />
 
-              <div className="absolute left-0 right-0 mt-1.5 bg-white border border-stone-100 rounded-xl shadow-xl max-h-60 overflow-y-auto z-20 p-1.5 space-y-0.5 animate-in fade-in slide-in-from-top-2 duration-150">
-                {/* Opțiunea implicită: Resetează filtrul */}
+              <div className="absolute left-0 mt-2 w-56 bg-white/95 backdrop-blur-md border border-stone-100 rounded-2xl shadow-xl max-h-64 overflow-y-auto z-20 p-1.5 space-y-0.5 animate-in fade-in slide-in-from-top-2 duration-150">
+                {/* Resetare filtru */}
                 <button
                   onClick={() => {
                     onSelectCategory("");
                     setIsDropdownOpen(false);
                   }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-xs font-bold uppercase tracking-tight transition-colors ${
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[11px] font-black uppercase tracking-tight transition-colors ${
                     !selectedCategory
                       ? "bg-emerald-50 text-emerald-700"
                       : "text-stone-500 hover:bg-stone-50"
@@ -108,23 +154,23 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
                   <span>🧺</span> Toate Categoriile
                 </button>
 
-                {/* Toate celelalte categorii din listă */}
+                {/* Opțiunile de categorii */}
                 {PRODUCT_CATEGORIES.map((cat) => {
                   const isSelected = selectedCategory === cat;
                   return (
                     <button
-                      key={`drop-${cat}`}
+                      key={`mobile-drop-${cat}`}
                       onClick={() => {
                         onSelectCategory(isSelected ? "" : cat);
                         setIsDropdownOpen(false);
                       }}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-xs font-bold uppercase tracking-tight transition-colors ${
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[11px] font-black uppercase tracking-tight transition-colors ${
                         isSelected
                           ? "bg-emerald-50 text-emerald-700"
                           : "text-stone-500 hover:bg-stone-50"
                       }`}
                     >
-                      <span className="text-sm">{getCategoryIcon(cat)}</span>
+                      <span className="text-base">{getCategoryIcon(cat)}</span>
                       <span className="truncate">{cat}</span>
                     </button>
                   );
@@ -133,50 +179,7 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
             </>
           )}
         </div>
-
-        {/* 💻 2. DESIGN PENTRU DESKTOP: BARA DE "PILLS" MINIMALISTĂ (Se vede doar de la md: în sus) */}
-        <div className="hidden md:flex flex-wrap items-center gap-2 flex-grow">
-          {/* Pastila pentru Toate Categoriile */}
-          <button
-            onClick={() => onSelectCategory("")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-black uppercase tracking-tight transition-all ${
-              !selectedCategory
-                ? "bg-stone-900 border-stone-900 text-white shadow-sm"
-                : "bg-white border-stone-200 text-stone-500 hover:border-stone-400 hover:text-stone-900"
-            }`}
-          >
-            <span>🧺</span> Toate
-          </button>
-
-          {PRODUCT_CATEGORIES.map((cat) => {
-            const isSelected = selectedCategory === cat;
-            return (
-              <button
-                key={`pill-${cat}`}
-                onClick={() => onSelectCategory(isSelected ? "" : cat)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-black uppercase tracking-tight transition-all ${
-                  isSelected
-                    ? "bg-emerald-600 border-emerald-600 text-white shadow-sm"
-                    : "bg-white border-stone-200 text-stone-500 hover:border-stone-400 hover:text-stone-900"
-                }`}
-              >
-                <span className="text-xs">{getCategoryIcon(cat)}</span>
-                <span>{cat}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* SECȚIUNE DISCRETĂ DE RESET FILTRU RAPID (Apare doar pe Desktop când e ceva selectat) */}
-        {selectedCategory && (
-          <button
-            onClick={() => onSelectCategory("")}
-            className="hidden md:block text-[10px] font-black text-rose-500 hover:text-rose-600 uppercase tracking-widest flex-shrink-0"
-          >
-            Șterge [x]
-          </button>
-        )}
       </div>
-    </div>
+    </>
   );
 };
