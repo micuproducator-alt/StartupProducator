@@ -49,7 +49,8 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
     const handleScroll = () => {
       const scrollY = window.scrollY;
 
-      if (scrollY > 180) {
+      // Am scăzut pragul la 50px ca să apară instant cum miști pagina!
+      if (scrollY > 50) {
         setIsScrolled(true);
       } else {
         setIsScrolled(false);
@@ -59,8 +60,7 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
 
-      // Dispariție fluidă înainte de footer
-      if (documentHeight - (scrollY + windowHeight) < 400) {
+      if (documentHeight - (scrollY + windowHeight) < 300) {
         setIsNearFooter(true);
         setIsDropdownOpen(false);
       } else {
@@ -75,7 +75,7 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
   return (
     <>
       {/* ========================================================= */}
-      {/* 🟢 1. BARA DE CATEGORII NORMALĂ (Când ești sus de tot)     */}
+      {/* 🟢 1. BARA DE CATEGORII NORMALĂ (Neschimbată)             */}
       {/* ========================================================= */}
       <div className="mb-8 px-2">
         <div className="flex items-center justify-between mb-6">
@@ -126,28 +126,27 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
       </div>
 
       {/* ===================================================================== */}
-      {/* ⚡️ 2. ICONIȚĂ DECENTĂ ȘI ULTRA-MINIMALISTĂ LA SCROLL (LUPĂ / EMORJI)     */}
+      {/* ⚡️ 2. LUPA MODERNA PE MARGINE (Z-INDEX MAXIM + CULOARE DE TEST)       */}
       {/* ===================================================================== */}
       <div
-        className={`fixed top-1/3 left-0 z-50 transition-all duration-300 ${
+        className={`fixed top-1/3 left-0 z-[9999] transition-all duration-300 ${
           isScrolled && !isNearFooter
             ? "opacity-100 translate-x-0 pointer-events-auto"
             : "opacity-0 -translate-x-12 pointer-events-none"
         }`}
       >
         <div className="relative flex items-center">
-          {/* Micro-butonul lipit pe margine - Stil capsulă semi-rotundă */}
+          {/* Am pus bg-emerald-600 ca să sară în ochi imediat când dai scroll! */}
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center justify-center bg-stone-950/95 backdrop-blur-md text-white shadow-xl h-12 w-11 rounded-r-xl border-y border-r border-stone-800 outline-none transition-all active:scale-90 hover:bg-stone-900"
+            className="flex items-center justify-center bg-emerald-600 text-white shadow-2xl h-14 w-12 rounded-r-2xl border-y border-r border-emerald-500 outline-none transition-all active:scale-90 hover:bg-emerald-700"
           >
-            {/* Afișează iconița categoriei active, iar dacă nu e nimic selectat, pune o lupă fină */}
-            <span className="text-xl transition-transform duration-200 hover:scale-110">
+            <span className="text-xl">
               {selectedCategory ? getCategoryIcon(selectedCategory) : "🔍"}
             </span>
           </button>
 
-          {/* Dropdown-ul care pleacă elegant direct din micro-buton */}
+          {/* Dropdown-ul lateral */}
           {isDropdownOpen && (
             <>
               <div
@@ -155,17 +154,13 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
                 onClick={() => setIsDropdownOpen(false)}
               />
 
-              <div className="absolute left-full top-0 ml-2 w-60 bg-white/95 backdrop-blur-md border border-stone-200 rounded-2xl shadow-2xl max-h-[50vh] overflow-y-auto z-20 p-2 space-y-1 animate-in fade-in slide-in-from-left-3 duration-200">
-                <div className="px-2 py-1 border-b border-stone-100 mb-1 flex justify-between items-center">
+              <div className="absolute left-full top-0 ml-2 w-60 bg-white border border-stone-200 rounded-2xl shadow-2xl max-h-[50vh] overflow-y-auto z-20 p-2 space-y-1 animate-in fade-in slide-in-from-left-3 duration-200">
+                <div className="px-2 py-1 border-b border-stone-100 mb-1">
                   <span className="text-[10px] font-black text-stone-400 uppercase tracking-wider">
                     Filtrează după:
                   </span>
-                  {selectedCategory && (
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  )}
                 </div>
 
-                {/* Opțiunea reset: Toate produsele */}
                 <button
                   onClick={() => {
                     onSelectCategory("");
@@ -181,7 +176,6 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
                   <span>Toate Categoriile</span>
                 </button>
 
-                {/* Generarea listei de categorii */}
                 {PRODUCT_CATEGORIES.map((cat) => {
                   const isSelected = selectedCategory === cat;
                   return (
