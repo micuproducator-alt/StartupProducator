@@ -111,10 +111,11 @@ export const LiveMap: React.FC<LiveMapProps> = ({
         style={{ height: "100%", width: "100%" }}
         scrollWheelZoom={false}
       >
-        {/* ⚡️ AICI S-A FĂCUT UPGRADE-UL LA HARTA MODERNĂ CLARĂ */}
+        {/* ⚡️ VARIANTA 100% GRATUITĂ ȘI PREMIUM: Stilul CartoDB Voyager */}
+        {/* Are străzi bine definite, culori soft și arată exact ca o aplicație modernă de ridesharing/livrări */}
         <TileLayer
-          attribution='&copy; <a href="https://www.mapbox.com/">Mapbox</a>'
-          url="https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=AICI_PUI_TOKENUL_TAU_DE_LA_MAPBOX"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
 
         {/* Ruta desenată */}
@@ -123,8 +124,8 @@ export const LiveMap: React.FC<LiveMapProps> = ({
             positions={polylinePoints}
             pathOptions={{
               color: "#10b981",
-              weight: 5,
-              opacity: 0.7,
+              weight: 6,
+              opacity: 0.8,
               dashArray: "12, 12",
               lineCap: "round",
             }}
