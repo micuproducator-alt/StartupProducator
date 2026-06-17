@@ -279,7 +279,7 @@ const App: React.FC = () => {
                   className="h-11 sm:h-16 w-auto object-contain object-left transition-transform group-hover:scale-102"
                 />
                 {/* Subtitlul aliniat perfect sub logo, vizibil doar de la sm în sus */}
-                <span className="hidden sm:block text-[11px] font-black uppercase tracking-[0.15em] bg-gradient-to-r from-blue-700 via-amber-500 to-red-600 bg-clip-text text-transparent mt-1 transition-all group-hover:opacity-80 text-left">
+                <span className="hidden sm:block text-[11px] font-black uppercase tracking-[0.15em] bg-linear-to-r from-blue-700 via-amber-500 to-red-600 bg-clip-text text-transparent mt-1 transition-all group-hover:opacity-80 text-left">
                   Gust autentic, de la oameni gospodari
                 </span>
               </div>
