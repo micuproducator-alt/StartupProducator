@@ -67,7 +67,6 @@ export const AdCard: React.FC<AdCardProps> = ({
         className="group bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden hover:shadow-md cursor-pointer flex flex-col h-full relative transition-all"
       >
         <div className="relative h-32 w-full bg-stone-100 flex items-center justify-center overflow-hidden">
-          {/* Fundal gri pulsatil direct sub poză */}
           {!imageLoaded && (
             <div className="absolute inset-0 bg-stone-200 animate-pulse" />
           )}
@@ -108,7 +107,6 @@ export const AdCard: React.FC<AdCardProps> = ({
     >
       {/* Container Imagine */}
       <div className="relative h-72 w-full overflow-hidden bg-stone-100 flex items-center justify-center">
-        {/* Placeholder-ul pulsează curat doar pe fundal până apare imaginea progresiv */}
         {!imageLoaded && (
           <div className="absolute inset-0 bg-stone-200 animate-pulse z-0" />
         )}
@@ -116,8 +114,8 @@ export const AdCard: React.FC<AdCardProps> = ({
         <img
           src={mainImage}
           alt={title}
-          loading="lazy" // OPTIMIZARE: Încarcă doar când devine vizibil pe ecran
-          decoding="async" // OPTIMIZARE: Nu blochează restul site-ului în timp ce se procesează pixelii pozei
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover transform transition-all duration-700 ease-out group-hover:scale-110 relative z-10"
           onLoad={() => setImageLoaded(true)}
         />
@@ -134,13 +132,16 @@ export const AdCard: React.FC<AdCardProps> = ({
           )}
         </div>
 
-        {/* Favorite Button */}
+        {/* 🟢 REPARAT: Favorite Button adus în stratul z-50 și izolat pentru click instant fără hover obligatoriu */}
         <button
           onClick={(e) => {
-            e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation(); // Oprește deschiderea automată a paginii de detalii
             onToggleFavorite(e);
           }}
-          className="absolute top-5 right-5 p-2.5 rounded-full bg-white/90 backdrop-blur-md shadow-sm text-stone-400 hover:text-rose-500 transition-all active:scale-90 z-20 border border-white"
+          onMouseDown={(e) => e.stopPropagation()}
+          className="absolute top-5 right-5 p-2.5 rounded-full bg-white/95 backdrop-blur-md shadow-md text-stone-400 hover:text-rose-500 transition-all active:scale-90 z-50 cursor-pointer pointer-events-auto border border-white"
+          style={{ transform: "translateZ(0)" }} // Forțează randarea hardware în straturile superioare deasupra scale-ului pozei
         >
           <svg
             className={`w-4 h-4 ${isFavorite ? "fill-current text-rose-500" : ""}`}
