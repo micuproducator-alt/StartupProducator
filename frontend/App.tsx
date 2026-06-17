@@ -279,9 +279,17 @@ const App: React.FC = () => {
                   className="h-11 sm:h-16 w-auto object-contain object-left transition-transform group-hover:scale-102"
                 />
                 {/* Subtitlul aliniat perfect sub logo, vizibil doar de la sm în sus */}
-                <span className="hidden sm:block text-[11px] font-black uppercase tracking-[0.15em] bg-gradient-to-r from-blue-800 via-amber-500 to-red-700 bg-clip-text text-transparent mt-1 transition-all group-hover:opacity-80 text-left">
-                  Gust autentic, de la oameni gospodari
-                </span>
+                <div className="hidden sm:flex items-center gap-2 mt-1">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-stone-600 transition-all group-hover:text-stone-900 text-left">
+                    Gust autentic, de la oameni gospodari
+                  </span>
+                  {/* Cele 3 buline tricolore discrete */}
+                  <div className="flex gap-0.5 items-center">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-600" />
+                  </div>
+                </div>
               </div>
               {/* BUTON DONAȚIE */}
               {/* <button
