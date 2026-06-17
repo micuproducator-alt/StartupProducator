@@ -9,6 +9,7 @@ import {
   addReview,
   fetchRelatedAds,
 } from "../services/adsService";
+
 // Adaugă fetchRelatedAds aici:
 
 interface AdDetailsProps {

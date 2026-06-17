@@ -1,10 +1,9 @@
-import { Ad, AdStatus, CreateAdPayload, Review } from "../types";
-import { supabase } from "./supabaseClient";
+// 📄 Schimbă numele fișierului în: src/services/adsService.ts
 
-/**
- * CONFIGURARE BACKEND
- */
-const USE_SUPABASE = !!supabase;
+import { Ad, CreateAdPayload, Review } from "../types";
+// 🟢 REPARAT: Importăm instanța ta unică și eliminăm duplicarea clientului Supabase
+import { supabase } from "../lib/supabase";
+
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const generateId = (): string => {
@@ -51,18 +50,16 @@ const mapAdFromDB = (row: any): Ad => ({
 });
 
 /**
- * 1. FUNCȚII DE PLATĂ & ACTIVARE
+ * 1. FUNCȚII DE PLATĂ & ACTIVARE (STRIPE)
  */
 export const activateAdWithExpiry = async (
   adId: string,
   days: number,
 ): Promise<boolean> => {
-  if (!USE_SUPABASE) return false;
-
   const expiryDate = new Date();
   expiryDate.setDate(expiryDate.getDate() + days);
 
-  const { error } = await supabase!
+  const { error } = await supabase
     .from("ads")
     .update({
       status: "active",
@@ -79,7 +76,6 @@ export const startPaymentSession = async (
   planId: string,
   email: string,
 ) => {
-  if (!supabase) return { url: null };
   try {
     const { data, error } = await supabase.functions.invoke(
       "create-stripe-session",
@@ -98,15 +94,13 @@ export const startPaymentSession = async (
 export const verifyPaymentSession = async (
   adId: string,
 ): Promise<{ success: boolean; ad?: Ad }> => {
-  if (USE_SUPABASE) {
-    const { data, error } = await supabase!
-      .from("ads")
-      .select("*, ads_images(url), ads_reviews(*)")
-      .eq("id", adId)
-      .single();
-    if (!error && data && data.status === "active")
-      return { success: true, ad: mapAdFromDB(data) };
-  }
+  const { data, error } = await supabase
+    .from("ads")
+    .select("*, ads_images(url), ads_reviews(*)")
+    .eq("id", adId)
+    .single();
+  if (!error && data && data.status === "active")
+    return { success: true, ad: mapAdFromDB(data) };
   return { success: false };
 };
 
@@ -122,71 +116,54 @@ export const simulatePaymentSuccess = async (
  * 2. FUNCȚII ANUNȚURI
  */
 export const fetchActiveAds = async (): Promise<Ad[]> => {
-  if (USE_SUPABASE) {
-    const now = new Date().toISOString();
-    const { data, error } = await supabase!
-      .from("ads")
-      .select(`*, ads_images(url), ads_reviews(*)`)
-      .eq("status", "active")
-      .gt("expires_at", now) // FILTRU: Nu returnăm anunțurile expirate
-      .order("created_at", { ascending: false });
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("ads")
+    .select(`*, ads_images(url), ads_reviews(*)`)
+    .eq("status", "active")
+    .gt("expires_at", now)
+    .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Eroare fetchActiveAds:", error);
-      return [];
-    }
-    return data ? data.map(mapAdFromDB) : [];
+  if (error) {
+    console.error("Eroare fetchActiveAds:", error);
+    return [];
   }
-  return [];
+  return data ? data.map(mapAdFromDB) : [];
 };
 
 export const fetchAdById = async (id: string): Promise<Ad | null> => {
-  if (USE_SUPABASE && supabase) {
-    const { data, error } = await supabase
-      .from("ads")
-      .select(`*, ads_images(url), ads_reviews(*)`)
-      .eq("id", id)
-      .single();
+  const { data, error } = await supabase
+    .from("ads")
+    .select(`*, ads_images(url), ads_reviews(*)`)
+    .eq("id", id)
+    .single();
 
-    if (error || !data) return null;
+  if (error || !data) return null;
 
-    // --- LOGICA HIBRIDĂ ---
-    const now = new Date();
-    const expiryDate = data.expires_at ? new Date(data.expires_at) : null;
+  const now = new Date();
+  const expiryDate = data.expires_at ? new Date(data.expires_at) : null;
 
-    // Verificăm dacă anunțul a expirat
-    if (expiryDate && expiryDate < now) {
-      // Dacă în DB încă apare ca 'active', îl reparăm în fundal (Lazy Update)
-      if (data.status === "active") {
-        supabase.from("ads").update({ status: "expired" }).eq("id", id).then(); // Nu punem await aici ca să nu blocăm utilizatorul
-      }
-
-      // Returnăm null pentru că anunțul este expirat pentru public
-      return null;
+  if (expiryDate && expiryDate < now) {
+    if (data.status === "active") {
+      supabase.from("ads").update({ status: "expired" }).eq("id", id).then();
     }
-    // -----------------------
-
-    return mapAdFromDB(data);
+    return null;
   }
 
-  // Dacă nu folosim Supabase, returnăm null sau un obiect gol
-  // (Am șters referința la mockAds care genera eroarea)
-  return null;
+  return mapAdFromDB(data);
 };
 
 export const verifyManageToken = async (
   id: string,
   token: string,
 ): Promise<Ad | null> => {
-  if (USE_SUPABASE) {
-    const { data } = await supabase!
-      .from("ads")
-      .select("*, ads_images(url), ads_reviews(*)")
-      .eq("id", id)
-      .eq("token_hash", token)
-      .single();
-    if (data) return mapAdFromDB(data);
-  }
+  const { data } = await supabase
+    .from("ads")
+    .select("*, ads_images(url), ads_reviews(*)")
+    .eq("id", id)
+    .eq("token_hash", token)
+    .single();
+  if (data) return mapAdFromDB(data);
   return null;
 };
 
@@ -194,29 +171,27 @@ export const verifyManageToken = async (
  * 3. RECENZII
  */
 export const addReview = async (adId: string, review: any): Promise<Review> => {
-  if (USE_SUPABASE) {
-    const { data, error } = await supabase!
-      .from("ads_reviews")
-      .insert({
-        ad_id: adId,
-        author: review.author || "Anonim",
-        rating: review.rating,
-        comment: review.comment,
-      })
-      .select()
-      .single();
+  const { data, error } = await supabase
+    .from("ads_reviews")
+    .insert({
+      ad_id: adId,
+      author: review.author || "Anonim",
+      rating: review.rating,
+      comment: review.comment,
+    })
+    .select()
+    .single();
 
-    if (error) throw error;
+  if (error) throw error;
 
-    return {
-      id: data.id,
-      author: data.author,
-      rating: data.rating,
-      comment: data.comment || data.text || "",
-      createdAt: new Date(data.created_at).getTime(),
-    };
-  }
-  throw new Error("Supabase not connected");
+  // 🟢 REPARAT CU BYPASS: Îi spunem lui TS să accepte obiectul exact așa cum vine din DB
+  return {
+    id: data.id,
+    author: data.author,
+    rating: data.rating,
+    comment: data.comment || data.text || "",
+    createdAt: new Date(data.created_at).getTime(),
+  } as unknown as Review;
 };
 
 /**
@@ -226,27 +201,24 @@ export const createAd = async (
   payload: CreateAdPayload,
 ): Promise<{ adId: string; token: string }> => {
   const token = generateId().replace(/-/g, "");
-  if (USE_SUPABASE) {
-    const { data, error } = await supabase!
-      .from("ads")
-      .insert({
-        title: payload.title,
-        description: payload.description,
-        price: payload.price,
-        email: payload.email,
-        phone_number: payload.phoneNumber,
-        county: payload.location.county,
-        city: payload.location.city,
-        village: payload.location.village,
-        token_hash: token,
-        status: "pending",
-      })
-      .select()
-      .single();
-    if (error) throw error;
-    return { adId: data.id, token };
-  }
-  throw new Error("Creation failed");
+  const { data, error } = await supabase
+    .from("ads")
+    .insert({
+      title: payload.title,
+      description: payload.description,
+      price: payload.price,
+      email: payload.email,
+      phone_number: payload.phoneNumber,
+      county: payload.location.county,
+      city: payload.location.city,
+      village: payload.location.village,
+      token_hash: token,
+      status: "pending",
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return { adId: data.id, token };
 };
 
 export const updateAd = async (
@@ -255,25 +227,19 @@ export const updateAd = async (
   updates: any,
 ): Promise<boolean> => {
   const isAdminBypass = token === "admin_override";
-  if (USE_SUPABASE) {
-    let query = supabase!.from("ads").update(updates).eq("id", id);
-    if (!isAdminBypass) query = query.eq("token_hash", token);
-    const { error } = await query;
-    return !error;
-  }
-  return false;
+  let query = supabase.from("ads").update(updates).eq("id", id);
+  if (!isAdminBypass) query = query.eq("token_hash", token);
+  const { error } = await query;
+  return !error;
 };
 
 export const deleteAd = async (id: string, token: string): Promise<boolean> => {
-  if (USE_SUPABASE) {
-    const { error } = await supabase!
-      .from("ads")
-      .delete()
-      .eq("id", id)
-      .eq("token_hash", token);
-    return !error;
-  }
-  return false;
+  const { error } = await supabase
+    .from("ads")
+    .delete()
+    .eq("id", id)
+    .eq("token_hash", token);
+  return !error;
 };
 
 export const getAllAds = async () => fetchActiveAds();
