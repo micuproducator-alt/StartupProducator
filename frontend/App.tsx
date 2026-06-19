@@ -415,7 +415,7 @@ const App: React.FC = () => {
                 </p>
                 <div className="flex gap-4">
                   <a
-                    href="#"
+                    href="https://www.facebook.com/profile.php?id=61590431496895"
                     target="_blank"
                     rel="noreferrer"
                     className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-stone-500 hover:text-emerald-600 hover:border-emerald-200 hover:shadow-sm transition-all"
@@ -430,7 +430,7 @@ const App: React.FC = () => {
                     </svg>
                   </a>
                   <a
-                    href="#"
+                    href="https://www.instagram.com/locallio.ro/"
                     target="_blank"
                     rel="noreferrer"
                     className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-stone-500 hover:text-emerald-600 hover:border-emerald-200 hover:shadow-sm transition-all"
