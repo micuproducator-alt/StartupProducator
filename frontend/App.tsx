@@ -270,7 +270,7 @@ const App: React.FC = () => {
             <div className="flex min-h-[104px] sm:min-h-[116px] py-3 justify-between items-center gap-4">
               {/* BRANDING (ACUM CU SPAȚIU GENEROS ÎN JOS) */}
               <div
-                className="flex flex-col items-start justify-center cursor-pointer group min-w-0 pb-4 sm:pb-5"
+                className="flex flex-col items-start justify-center cursor-pointer group min-w-0 "
                 onClick={() => navigate("/")}
               >
                 <img
