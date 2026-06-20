@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { Helmet } from "react-helmet-async";
 import { Home } from "./pages/Home";
 import { CreateAd } from "./pages/CreateAd";
 import { AdDetails } from "./pages/AdDetails";
@@ -17,7 +18,48 @@ import {
   clearAllNotifications,
 } from "./services/mockBackend";
 import { fetchActiveAds } from "./services/adsService";
-// import DonationPage from "./components/DonatingPage"; // Ajustează calea în funcție de unde ai salvat fișierul
+import DonationPage from "./components/DonatingPage"; // Ajustat importul pentru a randa pagina de donație
+
+// ===== SEO: configurare globală + meta per rută =====
+const SITE_URL = "https://www.locallio.ro";
+
+const getRouteMeta = (cleanPath: string) => {
+  if (cleanPath === "/adminAccess") {
+    return {
+      title: "Administrare Platformă | Locallio",
+      description: "Panou de administrare Locallio.",
+      noindex: true,
+    };
+  }
+  if (cleanPath === "/payment-success") {
+    return {
+      title: "Plată Confirmată | Locallio",
+      description: "Confirmarea plății pentru anunțul tău pe Locallio.",
+      noindex: true,
+    };
+  }
+  if (cleanPath.startsWith("/manage/")) {
+    return {
+      title: "Gestionează Anunțul | Locallio",
+      description: "Administrează-ți anunțul publicat pe Locallio.",
+      noindex: true,
+    };
+  }
+  if (cleanPath === "/" || cleanPath === "" || cleanPath.startsWith("/ad/")) {
+    return {
+      title:
+        "Locallio – Piața Producătorilor Locali din România | Produse Artizanale & Ecologice",
+      description:
+        "Descoperă și comandă direct de la producători locali verificați din România: brânzeturi, miere, legume, conserve și produse artizanale, fără intermediari.",
+      noindex: false,
+    };
+  }
+  return {
+    title: "Pagina nu a fost găsită | Locallio",
+    description: "Pagina căutată nu există pe Locallio.",
+    noindex: true,
+  };
+};
 
 /**
  * ROOT APPLICATION COMPONENT
@@ -193,6 +235,11 @@ const App: React.FC = () => {
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
+  // ===== SEO: meta calculată pentru ruta curentă =====
+  const seoCleanPath = currentPath.replace("#", "").split("?")[0];
+  const seoMeta = getRouteMeta(seoCleanPath);
+  const seoCanonical = `${SITE_URL}/${seoCleanPath === "/" ? "" : seoCleanPath.replace(/^\//, "")}`;
+
   /**
    * ROUTER SWITCH
    * Determines which page to render based on the URL hash.
@@ -236,7 +283,7 @@ const App: React.FC = () => {
       }
     }
 
-    // 🚀 EXACT AICI ADAUGI NOUA RUTĂ PENTRU DONAȚIE:
+    // RUTA PENTRU DONAȚIE
     if (cleanPath === "/doneaza") {
       return <DonationPage />;
     }
@@ -263,12 +310,35 @@ const App: React.FC = () => {
   return (
     <HelmetProvider>
       <div className="min-h-screen flex flex-col font-sans text-stone-800 px-5">
+        <Helmet>
+          <html lang="ro" />
+          <title>{seoMeta.title}</title>
+          <meta name="description" content={seoMeta.description} />
+          <link rel="canonical" href={seoCanonical} />
+          {seoMeta.noindex ? (
+            <meta name="robots" content="noindex, nofollow" />
+          ) : (
+            <meta
+              name="robots"
+              content="index, follow, max-image-preview:large"
+            />
+          )}
+          <meta property="og:type" content="website" />
+          <meta property="og:site_name" content="Locallio" />
+          <meta property="og:locale" content="ro_RO" />
+          <meta property="og:title" content={seoMeta.title} />
+          <meta property="og:description" content={seoMeta.description} />
+          <meta property="og:url" content={seoCanonical} />
+          <meta property="og:image" content={`${SITE_URL}/og-image.jpg`} />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content={seoMeta.title} />
+          <meta name="twitter:description" content={seoMeta.description} />
+          <meta name="twitter:image" content={`${SITE_URL}/og-image.jpg`} />
+        </Helmet>
         <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-stone-100 w-full">
-          {/* Am păstrat px-4 pentru o aerisire corectă stânga/dreapta pe mobil */}
           <div className="max-w-7xl mx-auto px-4 sm:my-0 sm:px-6 lg:px-8">
-            {/* Schimbat h-20 în min-h și py-3 pentru a lăsa header-ul să crească organic pe verticală */}
             <div className="flex min-h-[104px] sm:min-h-[116px] py-3 justify-between items-center gap-4">
-              {/* BRANDING (ACUM CU SPAȚIU GENEROS ÎN JOS) */}
+              {/* BRANDING */}
               <div
                 className="flex items-start justify-center cursor-pointer group min-w-0 pb-4 sm:pb-5"
                 onClick={() => navigate("/")}
@@ -289,31 +359,10 @@ const App: React.FC = () => {
                   className="block sm:hidden h-11 w-auto object-contain transition-transform group-hover:scale-102"
                 />
               </div>
-              {/* BUTON DONAȚIE */}
-              {/* <button
-                onClick={() => setIsDonationModalOpen(true)}
-                className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl hover:from-amber-600 hover:to-orange-600 shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 uppercase tracking-wider"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2.5}
-                  stroke="currentColor"
-                  className="w-4 h-4 sm:w-5 h-5 animate-pulse"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
-                  />
-                </svg>
-                <span className="hidden xs:inline">Susține-ne</span>
-              </button> */}
 
-              {/* NAVIGARE / BUTOANE COMPACTE ȘI ALINIATE */}
+              {/* NAVIGARE / BUTOANE */}
               <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
-                {/* BUTON GHID (Doar iconița pe mobil pentru a lăsa spațiu ecranului) */}
+                {/* BUTON GHID */}
                 <button
                   onClick={() => setIsGuideModalOpen(true)}
                   className="text-base sm:text-xs font-bold uppercase tracking-widest text-stone-500 hover:text-emerald-700 bg-stone-50 hover:bg-emerald-50/50 p-2.5 sm:px-4 sm:py-2.5 rounded-xl border border-stone-100 transition-all flex items-center justify-center min-w-[40px] h-[40px]"
@@ -407,13 +456,14 @@ const App: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
               <div className="space-y-6">
                 <span className="text-lg font-bold text-stone-900 tracking-tight">
-                  MiculProducator
+                  Locallio
                 </span>
                 <p className="text-xs text-stone-500 leading-relaxed max-w-xs">
                   Susținem producătorii locali prin tehnologie intuitivă,
                   conectând gospodăriile autentice cu consumatorii moderni.
                 </p>
                 <div className="flex gap-4">
+                  {/* REPARAT: Adăugat tagul <a> deschis corect pentru Facebook */}
                   <a
                     href="https://www.facebook.com/profile.php?id=61590431496895"
                     target="_blank"
@@ -429,6 +479,8 @@ const App: React.FC = () => {
                       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                     </svg>
                   </a>
+
+                  {/* REPARAT: Adăugat tagul <a> deschis corect pentru Instagram */}
                   <a
                     href="https://www.instagram.com/locallio.ro/"
                     target="_blank"
@@ -441,9 +493,11 @@ const App: React.FC = () => {
                       fill="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204 013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.012-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
                     </svg>
                   </a>
+
+                  {/* REPARAT: Adăugat tagul <a> deschis corect pentru LinkedIn */}
                   <a
                     href="#"
                     target="_blank"
@@ -475,7 +529,6 @@ const App: React.FC = () => {
                       Acasă
                     </button>
                   </li>
-                  {/* BUTON ADĂUGAT ÎN FOOTER */}
                   <li>
                     <button
                       onClick={() => setIsGuideModalOpen(true)}
@@ -510,11 +563,12 @@ const App: React.FC = () => {
                 <p className="text-xs text-stone-600 leading-relaxed">
                   Ești producător și ai nevoie de suport tehnic?
                   <br />
+                  {/* REPARAT: Adăugat tagul <a> deschis corect pentru mailto */}
                   <a
-                    href="mailto:suport@miculproducator.ro"
+                    href="mailto:suport@locallio.ro"
                     className="text-emerald-600 hover:underline font-bold"
                   >
-                    suport@miculproducator.ro
+                    suport@locallio.ro
                   </a>
                 </p>
                 <p className="text-[9px] font-bold text-stone-300 uppercase tracking-widest leading-loose">
@@ -527,7 +581,7 @@ const App: React.FC = () => {
 
             <div className="border-t border-stone-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
               <p className="text-[9px] font-bold text-stone-400 uppercase tracking-[0.2em]">
-                &copy; {new Date().getFullYear()} MiculProducator. Digitalizing
+                &copy; {new Date().getFullYear()} Locallio. Digitalizing
                 Tradition.
               </p>
               <div className="flex gap-6 text-[9px] font-bold text-stone-300 uppercase tracking-[0.2em]">
@@ -552,15 +606,8 @@ const App: React.FC = () => {
             onOpenPrivacy={() => setIsPrivacyModalOpen(true)}
           />
         </Modal>
-        {/* <Modal
-          isOpen={isDonationModalOpen}
-          onClose={() => setIsDonationModalOpen(false)}
-          title="Susține Platforma"
-        >
-          <DonationPage />
-        </Modal> */}
 
-        {/* MODAL NOU: GHIDUL PLATFORMEI */}
+        {/* MODAL GHIDUL PLATFORMEI */}
         <Modal
           isOpen={isGuideModalOpen}
           onClose={handleCloseGuideModal}

@@ -4,24 +4,124 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>MiculProducator - Premium Local Listings</title>
+    <!-- ===== SEO PRIMAR ===== -->
+    <title>
+      Locallio – Piața Producătorilor Locali din România | Produse Artizanale &
+      Ecologice
+    </title>
     <meta
       name="description"
-      content="Locallio / MiculProducator - Conectăm producătorii locali din România direct cu masa ta. Descoperă hrană curată de la oameni gospodari."
+      content="Locallio conectează direct producătorii locali din România cu masa ta: brânzeturi, miere, legume, conserve și produse artizanale, fără intermediari. Comandă proaspăt, susține economia locală."
     />
-    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <meta
+      name="keywords"
+      content="producători locali, produse românești, piață online producători, brânză artizanală, miere naturală, legume ecologice, produse de la țară, marketplace local, Locallio"
+    />
+    <meta name="author" content="Locallio" />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+    <meta name="googlebot" content="index, follow" />
+    <link rel="canonical" href="https://www.locallio.ro/" />
+
+    <!-- Limbă / regiune -->
+    <meta name="language" content="Romanian" />
+    <meta name="geo.region" content="RO" />
+    <meta name="geo.placename" content="România" />
+    <link rel="alternate" hreflang="ro-RO" href="https://www.locallio.ro/" />
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href="https://www.locallio.ro/"
+    />
+
+    <!-- ===== OPEN GRAPH (Facebook / WhatsApp / LinkedIn) ===== -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Locallio" />
+    <meta property="og:locale" content="ro_RO" />
+    <meta
+      property="og:title"
+      content="Locallio – Piața Producătorilor Locali din România"
+    />
+    <meta
+      property="og:description"
+      content="Descoperă și comandă direct de la producători locali verificați: hrană curată, proaspătă, de la oameni gospodari din toate colțurile țării."
+    />
+    <meta property="og:url" content="https://www.locallio.ro/" />
+    <meta property="og:image" content="https://www.locallio.ro/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Locallio - Piața Producătorilor Locali din România"
+    />
+
+    <!-- ===== TWITTER / X CARDS ===== -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Locallio – Piața Producătorilor Locali din România"
+    />
+    <meta
+      name="twitter:description"
+      content="Conectăm producătorii locali din România direct cu masa ta. Hrană curată, proaspătă, fără intermediari."
+    />
+    <meta name="twitter:image" content="https://www.locallio.ro/og-image.jpg" />
+
+    <!-- ===== FAVICON / PWA ===== -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#f9f8f6" />
+
+    <!-- ===== PRECONNECT / PERFORMANCE ===== -->
     <link
       rel="preconnect"
       href="https://startupproducator.onrender.com"
       crossorigin
     />
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
+
+    <!-- ===== STRUCTURED DATA (JSON-LD) ===== -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Locallio",
+        "alternateName": "Locallio - Piața Producătorilor Locali",
+        "url": "https://www.locallio.ro/",
+        "logo": "https://www.locallio.ro/logo.png",
+        "description": "Locallio este o platformă online care conectează producătorii locali din România direct cu consumatorii, pentru produse alimentare proaspete și artizanale.",
+        "areaServed": {
+          "@type": "Country",
+          "name": "România"
+        },
+        "sameAs": [
+          "https://www.facebook.com/locallio",
+          "https://www.instagram.com/locallio"
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Locallio",
+        "url": "https://www.locallio.ro/",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://www.locallio.ro/cauta?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
 
     <style>
       body {
@@ -95,7 +195,7 @@
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
           ></path>
         </svg>
-        <span>Se încarcă piața...</span>
+        <span>Se încarcă piața locală...</span>
       </div>
     </div>
     <div id="app-error"></div>
