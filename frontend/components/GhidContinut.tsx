@@ -1,291 +1,201 @@
-import React, { useState } from "react";
+import React from "react";
 
-const PRODUCT_CATEGORIES = [
-  { name: "Legume", icon: "🥕" },
-  { name: "Fructe", icon: "🍏" },
-  { name: "Miere & Apicole", icon: "🍯" },
-  { name: "Lactate & Brânzeturi", icon: "🧀" },
-  { name: "Carne & Mezeluri", icon: "🥩" },
-  { name: "Ouă", icon: "🥚" },
-  { name: "Torturi & Prăžituri", icon: "🍰" },
-  { name: "Dulceață & Zacuști", icon: "🫙" },
-  { name: "Băuturi & Siropuri", icon: "🍾" },
-  { name: "Făinoase & Patiserie", icon: "🥖" },
-  { name: "Artizanat & Lucru Manual", icon: "🧶" },
-  { name: "Flori & Plante", icon: "🌸" },
-  { name: "Altele", icon: "📦" },
+const CATEGORIES = [
+  "Legume",
+  "Fructe",
+  "Miere",
+  "Lactate & Brânzeturi",
+  "Carne & Mezeluri",
+  "Ouă",
+  "Cofetărie",
+  "Dulcețuri & Zacuscă",
+  "Băuturi & Siropuri",
+  "Pâine & Patiserie",
+  "Artizanat",
+  "Flori & Plante",
 ];
 
 const PLANS = [
   {
-    id: "basic",
     name: "Starter",
-    basePrice: 10,
-    color: "border-stone-200 bg-white",
-    badge: "bg-stone-500",
-    features: [
-      "Vinde 1 tip de produs",
-      "Vizibil în 1 Categorie",
-      "Suport Standard",
-    ],
-    example:
-      "Dacă adaugi 'Miere de Tei', alegi o singură categorie și apare strict acolo.",
+    reach: "1 categorie",
+    price: "10",
+    line: "Pentru un singur produs, simplu și direct.",
   },
   {
-    id: "standard",
     name: "Grower",
-    basePrice: 20,
-    color:
-      "border-emerald-500 bg-emerald-50/30 shadow-md ring-2 ring-emerald-500/20",
-    badge: "bg-emerald-600",
-    isRecommended: true,
-    features: [
-      "Vinde până la 3 produse",
-      "Vizibil în 3 Categorii SIMULTAN",
-      "Recomandat de gospodari",
-    ],
-    example:
-      "Adaugi 'Dulceață'. Bifezi 3 categorii. Anunțul tău se multiplică automat și apare în toate cele 3 în același tempo!",
+    reach: "3 categorii",
+    price: "20",
+    line: "Adaugi marfa o dată, apare în trei locuri deodată.",
+    featured: true,
   },
   {
-    id: "premium",
     name: "Pro Market",
-    basePrice: 30,
-    color: "border-stone-900 bg-stone-900 text-white shadow-lg",
-    badge: "bg-amber-500 text-stone-900",
-    features: [
-      "Vinde până la 5 produse",
-      "Vizibil în 5 Categorii SIMULTAN",
-      "Suport Prioritar 24/7",
-    ],
-    example:
-      "Adaugi 'Sirop de mentă'. Îl poți bifa în 5 categorii conexe. Anunțul va fi expus în 5 locuri diferite simultan pentru impact maxim!",
+    reach: "5 categorii",
+    price: "30",
+    line: "Vizibilitate maximă, în cinci rafturi simultan.",
   },
 ];
 
-export default function GhidContinut() {
-  // Stat pentru tab-ul activ: 'despre', 'categorii', 'pachete'
-  const [activeTab, setActiveTab] = useState<
-    "despre" | "categorii" | "pachete"
-  >("despre");
+/* ——— BLOCURI REUTILIZABILE INTERNE ——— */
 
+function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="font-sans text-left text-stone-700 w-full max-w-4xl mx-auto bg-white rounded-3xl p-1">
-      {/* --- TAB NAVIGATION (UX MODERN) --- */}
-      <div className="flex bg-stone-100 p-1.5 rounded-2xl mb-8 border border-stone-200/50">
-        <button
-          onClick={() => setActiveTab("despre")}
-          className={`flex-1 py-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition-all ${
-            activeTab === "despre"
-              ? "bg-white text-stone-900 shadow-sm"
-              : "text-stone-500 hover:text-stone-900"
-          }`}
-        >
-          👋 Despre Noi
-        </button>
-        <button
-          onClick={() => setActiveTab("categorii")}
-          className={`flex-1 py-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition-all ${
-            activeTab === "categorii"
-              ? "bg-white text-stone-900 shadow-sm"
-              : "text-stone-500 hover:text-stone-900"
-          }`}
-        >
-          🌽 Categorii
-        </button>
-        <button
-          onClick={() => setActiveTab("pachete")}
-          className={`flex-1 py-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition-all ${
-            activeTab === "pachete"
-              ? "bg-white text-emerald-700 shadow-sm"
-              : "text-stone-500 hover:text-stone-900"
-          }`}
-        >
-          💎 Pachete & Vizibilitate
-        </button>
+    <h3 className="text-[11px] font-semibold uppercase tracking-[0.25em] text-stone-400">
+      {children}
+    </h3>
+  );
+}
+
+function Step({ n, title, text }: { n: string; title: string; text: string }) {
+  return (
+    <div className="flex gap-4 sm:gap-5">
+      <span className="text-sm font-bold text-emerald-600 tabular-nums pt-0.5 shrink-0">
+        {n}
+      </span>
+      <div>
+        <h4 className="text-lg font-semibold text-stone-900 mb-1.5">{title}</h4>
+        <p className="text-base leading-relaxed text-stone-500">{text}</p>
       </div>
+    </div>
+  );
+}
 
-      {/* --- CONTINUT DINAMIC PE TAB-URI --- */}
-      <div className="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-        {/* TAB 1: DESPRE */}
-        {activeTab === "despre" && (
-          <section className="animate-fadeIn space-y-6">
-            <div className="bg-gradient-to-br from-emerald-50/60 to-stone-50 p-8 rounded-3xl border border-emerald-100/40 shadow-sm">
-              <h3 className="text-2xl font-black text-stone-900 leading-tight mb-4 flex items-center gap-2">
-                Ce este Locallio și cu ce se ocupă?
-              </h3>
-              <p className="text-base leading-relaxed text-stone-600 font-medium">
-                <strong className="text-emerald-700 font-bold">
-                  Locallio.ro
-                </strong>{" "}
-                este o piață digitală (marketplace) dedicată exclusiv micilor
-                producători și gospodarilor din România. Scurtăm inteligent
-                lanțul dintre producător și consumatorul final.
-              </p>
-              <div className="mt-6 pt-6 border-t border-stone-200/60 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm font-bold text-stone-800">
-                <div className="flex items-center gap-3 bg-white p-4 rounded-2xl border border-stone-100 shadow-2xs">
-                  <span className="text-2xl">📞</span> Direct prin Telefon
-                </div>
-                <div className="flex items-center gap-3 bg-white p-4 rounded-2xl border border-stone-100 shadow-2xs">
-                  <span className="text-2xl">❌</span> Fără Comisioane pe
-                  Vânzare
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
+function Divider() {
+  return <div className="h-px bg-stone-100" />;
+}
 
-        {/* TAB 2: CATEGORII */}
-        {activeTab === "categorii" && (
-          <section className="animate-fadeIn">
-            <div className="mb-6">
-              <h3 className="text-2xl font-black text-stone-900 mb-1">
-                Categoriile Noastre de Produse
-              </h3>
-              <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">
-                Explorează diversitatea produselor românești
-              </p>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {PRODUCT_CATEGORIES.map((cat, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-3 bg-stone-50/50 border border-stone-100 rounded-2xl p-3.5 hover:bg-emerald-50/50 hover:border-emerald-200/50 hover:scale-[1.02] transition-all duration-200 cursor-pointer group shadow-2xs"
-                >
-                  <span className="text-2xl group-hover:scale-110 transition-transform">
-                    {cat.icon}
-                  </span>
-                  <span className="font-bold text-stone-800 text-sm group-hover:text-emerald-900 transition-colors">
-                    {cat.name}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+export default function GhidContinut() {
+  return (
+    <div className="font-sans text-stone-800 w-full max-w-2xl mx-auto">
+      <div className="max-h-[68vh] overflow-y-auto px-2 sm:px-4 custom-scrollbar">
+        {/* ——— DESCHIDERE ——— */}
+        <section className="pt-6 pb-12 text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-emerald-600 mb-4">
+            Bun venit pe Locallio
+          </p>
+          <h2 className="text-3xl sm:text-4xl font-bold leading-[1.15] tracking-tight text-stone-900 mb-5">
+            Mâncare adevărată,
+            <br />
+            direct de la cei care o fac.
+          </h2>
+          <p className="text-base leading-relaxed text-stone-500 max-w-md mx-auto">
+            Suntem locul unde gospodarii din toată țara își întâlnesc oamenii.
+            Fără supermarket la mijloc, fără comisioane pe vânzare. Doar tu și
+            producătorul, la un telefon distanță.
+          </p>
+        </section>
 
-        {/* TAB 3: PACHETE */}
-        {activeTab === "pachete" && (
-          <section className="animate-fadeIn space-y-8">
-            <div>
-              <h3 className="text-2xl font-black text-stone-900 mb-1">
-                Pachetele și Regula de Aur
-              </h3>
-              <p className="text-sm text-stone-500 font-medium">
-                Alege pachetul potrivit stocului tău. Cu cât pachetul este mai
-                avansat, cu atât anunțul tău obține expunere masivă prin
-                multiplicare automată.
-              </p>
-            </div>
+        <Divider />
 
-            {/* Grid Planuri */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-              {PLANS.map((plan) => {
-                const isPremium = plan.id === "premium";
-                return (
-                  <div
-                    key={plan.id}
-                    className={`border-2 rounded-[2rem] p-6 flex flex-col justify-between transition-all relative ${plan.color}`}
-                  >
-                    {plan.isRecommended && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[9px] font-black uppercase tracking-widest bg-emerald-600 text-white px-3 py-1 rounded-full shadow-sm">
-                        Cel mai popular
+        {/* ——— CUM FUNCȚIONEAZĂ ——— */}
+        <section className="py-12">
+          <SectionLabel>Cum merge</SectionLabel>
+          <div className="space-y-8 mt-6">
+            <Step
+              n="1"
+              title="Cauți"
+              text="Răsfoiești după categorie sau după zonă. Vrei să cumperi de pe traseul tău spre casă? Pornește modul „La drum” și vezi tot ce e pe rută."
+            />
+            <Step
+              n="2"
+              title="Suni"
+              text="Găsești ceva ce-ți place, suni direct producătorul. Vorbești om cu om — despre preț, despre livrare, despre cum a fost cultivat."
+            />
+            <Step
+              n="3"
+              title="Primești"
+              text="Vă înțelegeți cum vă convine amândurora. Noi nu ne băgăm și nu luăm un leu din vânzarea ta."
+            />
+          </div>
+        </section>
+
+        <Divider />
+
+        {/* ——— CATEGORII ——— */}
+        <section className="py-12">
+          <SectionLabel>Ce găsești aici</SectionLabel>
+          <p className="text-base leading-relaxed text-stone-500 mt-4 mb-6 max-w-md">
+            De la roșii crescute în grădină până la coșuri împletite de mână.
+            Tot ce înseamnă muncă de gospodar, într-un singur loc.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {CATEGORIES.map((cat) => (
+              <span
+                key={cat}
+                className="px-4 py-2 text-xs sm:text-sm font-medium text-stone-600 bg-stone-50 border border-stone-200 rounded-full hover:bg-stone-100 transition-colors cursor-default"
+              >
+                {cat}
+              </span>
+            ))}
+          </div>
+        </section>
+
+        <Divider />
+
+        {/* ——— PACHETE ——— */}
+        <section className="py-12">
+          <SectionLabel>Dacă vinzi</SectionLabel>
+          <p className="text-base leading-relaxed text-stone-500 mt-4 mb-8 max-w-md">
+            Alegi un pachet o singură dată, după cât de mult vrei să fii văzut.
+            Cu cand anunțul tău e într-un pachet mai generos, apare în mai multe
+            categorii deodată — fără să-l postezi de mai multe ori.
+          </p>
+
+          <div className="space-y-3">
+            {PLANS.map((plan) => (
+              <div
+                key={plan.name}
+                className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border transition-all ${
+                  plan.featured
+                    ? "border-emerald-200 bg-emerald-50/30 shadow-sm shadow-emerald-100/50"
+                    : "border-stone-200 bg-white"
+                }`}
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2.5 mb-1">
+                    <h4 className="text-base font-bold text-stone-900">
+                      {plan.name}
+                    </h4>
+                    {plan.featured && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                        Popular
                       </span>
                     )}
-
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <h4
-                          className={`text-lg font-black uppercase tracking-wider ${isPremium ? "text-white" : "text-stone-900"}`}
-                        >
-                          {plan.name}
-                        </h4>
-                      </div>
-                      <div className="flex items-baseline gap-1 mb-6">
-                        <span
-                          className={`text-3xl font-black ${isPremium ? "text-white" : "text-stone-900"}`}
-                        >
-                          {plan.basePrice}
-                        </span>
-                        <span
-                          className={`text-xs font-bold ${isPremium ? "text-stone-400" : "text-stone-400"}`}
-                        >
-                          RON / anunț
-                        </span>
-                      </div>
-
-                      <ul className="space-y-3 mb-6">
-                        {plan.features.map((f, i) => (
-                          <li
-                            key={i}
-                            className="flex items-start gap-2.5 text-sm font-semibold"
-                          >
-                            <span
-                              className={
-                                plan.isRecommended
-                                  ? "text-emerald-600"
-                                  : isPremium
-                                    ? "text-amber-400"
-                                    : "text-stone-400"
-                              }
-                            >
-                              ✓
-                            </span>
-                            <span
-                              className={
-                                isPremium ? "text-stone-200" : "text-stone-600"
-                              }
-                            >
-                              {f}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
                   </div>
-                );
-              })}
-            </div>
+                  <p className="text-sm text-stone-500 leading-snug">
+                    {plan.line}
+                  </p>
+                </div>
 
-            {/* Sectiunea Explicativa Multiplicare */}
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50/50 border-l-4 border-amber-500 p-6 rounded-r-3xl space-y-4 shadow-2xs">
-              <h4 className="font-black text-amber-900 text-base flex items-center gap-2">
-                💡 Cum funcționează multiplicarea anunțului?
-              </h4>
-              <p className="text-sm text-stone-600 leading-relaxed font-medium">
-                Când optezi pentru pachetul{" "}
-                <strong className="text-stone-900 font-bold">
-                  Grower (3 categorii)
-                </strong>{" "}
-                sau{" "}
-                <strong className="text-stone-900 font-bold">
-                  Pro Market (5 categorii)
-                </strong>
-                , adaugi marfa o singură dată. Sistemul o clonează în fundal și
-                o plasează în categorii diferite simultan, crescând șansele de
-                vânzare de până la 5 ori!
-              </p>
-
-              <div className="space-y-2.5 pt-2">
-                {PLANS.map((plan) => (
-                  <div
-                    key={plan.id}
-                    className="bg-white p-4 rounded-2xl border border-stone-200/60 shadow-3xs text-xs flex flex-col sm:flex-row sm:items-center gap-2"
-                  >
-                    <span
-                      className={`inline-block text-[9px] font-black uppercase tracking-wider text-white px-2 py-1 rounded-lg self-start sm:self-center ${plan.badge}`}
-                    >
-                      {plan.name}
-                    </span>
-                    <span className="text-stone-600 font-medium italic">
-                      "{plan.example}"
+                <div className="text-left sm:text-right shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-100 sm:block flex justify-between items-center">
+                  <div className="text-xl font-bold text-stone-900 leading-none">
+                    {plan.price}
+                    <span className="text-xs font-normal text-stone-400 ml-0.5">
+                      lei
                     </span>
                   </div>
-                ))}
+                  <div className="text-[11px] text-stone-400 mt-1 font-medium bg-stone-100 sm:bg-transparent px-2 py-0.5 sm:px-0 sm:py-0 rounded-md">
+                    {plan.reach}
+                  </div>
+                </div>
               </div>
-            </div>
-          </section>
-        )}
+            ))}
+          </div>
+        </section>
+
+        <Divider />
+
+        {/* ——— ÎNCHEIERE ——— */}
+        <section className="py-12 text-center">
+          <p className="text-lg font-medium text-stone-700 leading-relaxed max-w-sm mx-auto">
+            Atât. Simplu, ca pe vremuri — doar că acum
+            <br className="hidden sm:block" /> piața încape în buzunar.
+          </p>
+          <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.25em] text-stone-300 pointer-events-none">
+            Locallio
+          </p>
+        </section>
       </div>
     </div>
   );
