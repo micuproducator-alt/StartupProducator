@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AdCard } from "../components/AdCard";
 import { AdCardSkeleton } from "../components/AdCardSkeleton";
@@ -43,6 +43,9 @@ export const Home: React.FC<HomeProps> = ({
   const [selectedCategory, setSelectedCategory] = useState("");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
+  // Referință pentru secțiunea cu harta
+  const mapRef = useRef<HTMLDivElement>(null);
+
   // State-uri pentru locații din API
   const [counties, setCounties] = useState<
     { county_code: number; county_name: string }[]
@@ -83,7 +86,20 @@ export const Home: React.FC<HomeProps> = ({
     }
   };
 
-  // 1. Fetch județe la montare
+  // Auto-scroll la hartă când se selectează "La Drum"
+  useEffect(() => {
+    if (searchMode === "route") {
+      // Un mic timeout asigură faptul că elementul este montat în DOM și vizibil
+      setTimeout(() => {
+        mapRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center", // Îl centrează frumos pe ecran
+        });
+      }, 100);
+    }
+  }, [searchMode]);
+
+  // Fetch județe la montare
   useEffect(() => {
     fetch(`${API_URL}/geo/counties`)
       .then((res) => res.json())
@@ -98,10 +114,10 @@ export const Home: React.FC<HomeProps> = ({
       window.removeEventListener("miculproducator:ad_updated", loadAds);
   }, []);
 
-  // 2. Fetch orașe când se schimbă filterCounty
+  // Fetch orașe când se schimbă filterCounty
   useEffect(() => {
     if (filterCounty) {
-      const countyObj = counties.find((c: any) => c.name === filterCounty);
+      const countyObj = counties.find((c) => c.county_name === filterCounty);
 
       if (countyObj) {
         setLoadingGeo(true);
@@ -109,7 +125,9 @@ export const Home: React.FC<HomeProps> = ({
           .then((res) => res.json())
           .then((data) => {
             const locations = Array.isArray(data) ? data : data.data || [];
-            setAvailableCities(locations.map((loc: any) => loc.name));
+            setAvailableCities(
+              locations.map((loc: any) => loc.name || loc.city_name || loc),
+            );
             setFilterCity("");
           })
           .catch((err) => console.error("Eroare la încărcarea orașelor:", err))
@@ -212,7 +230,6 @@ export const Home: React.FC<HomeProps> = ({
 
   return (
     <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 py-6 md:py-10">
-      {/* ===== ELEMENT ADAUGAT PENTRU SEO ===== */}
       <h1 className="sr-only">
         Locallio – Piața Online a Producătorilor Locali din România | Hrană
         Curată de la Oameni Gospodari
@@ -288,8 +305,8 @@ export const Home: React.FC<HomeProps> = ({
                     >
                       <option value="">Toată România</option>
                       {counties.map((c) => (
-                        <option key={c.county_code} value={c.name}>
-                          {c.name}
+                        <option key={c.county_code} value={c.county_name}>
+                          {c.county_name}
                         </option>
                       ))}
                     </select>
@@ -334,8 +351,8 @@ export const Home: React.FC<HomeProps> = ({
                     >
                       <option value="">Alege Județ</option>
                       {counties.map((c) => (
-                        <option key={c.county_code} value={c.name}>
-                          {c.name}
+                        <option key={c.county_code} value={c.county_name}>
+                          {c.county_name}
                         </option>
                       ))}
                     </select>
@@ -351,8 +368,8 @@ export const Home: React.FC<HomeProps> = ({
                     >
                       <option value="">Alege Județ</option>
                       {counties.map((c) => (
-                        <option key={c.county_code} value={c.name}>
-                          {c.name}
+                        <option key={c.county_code} value={c.county_name}>
+                          {c.county_name}
                         </option>
                       ))}
                     </select>
@@ -381,16 +398,19 @@ export const Home: React.FC<HomeProps> = ({
         <main className="flex-1 space-y-8 md:space-y-12">
           {(searchMode === "route" || filterCounty) && (
             <motion.div
+              ref={mapRef} /* Referința mapată pentru scroll automat */
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="w-full h-[300px] md:h-[450px] rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white"
             >
               <LiveMap
                 ads={processedAds}
-                routeCounties={calculatedRouteCounties}
-                startCounty={routeStartCounty}
-                endCounty={routeEndCounty}
-                onMarkerClick={onAdClick}
+                {...({
+                  routeCounties: calculatedRouteCounties,
+                  startCounty: routeStartCounty,
+                  endCounty: routeEndCounty,
+                  onMarkerClick: onAdClick,
+                } as any)}
               />
             </motion.div>
           )}
@@ -405,7 +425,6 @@ export const Home: React.FC<HomeProps> = ({
             ) : processedAds.length === 0 ? (
               <div className="py-20 text-center bg-stone-50 rounded-[2.5rem] border border-dashed border-stone-200">
                 <ShoppingBasket className="w-16 h-16 text-stone-200 mx-auto mb-6" />
-                {/* UPGRADE SEO: Schimbat din h3 în h2 */}
                 <h2 className="text-xl font-bold text-stone-900 mb-2">
                   Niciun rezultat
                 </h2>
