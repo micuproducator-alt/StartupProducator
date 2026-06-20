@@ -100,7 +100,7 @@ export default function GhidContinut() {
             <Step
               n="2"
               title="Suni"
-              text="Găsești ceva ce-ți place, suni direct producătorul. Vorbești om cu om — despre preț, despre livrare, despre cum a fost cultivat."
+              text="Găsești ceva ce-ți place, suni direct producătorul. Vorbești om cu om despre preț, despre livrare, despre cum a fost cultivat."
             />
             <Step
               n="3"
@@ -139,7 +139,7 @@ export default function GhidContinut() {
           <p className="text-base leading-relaxed text-stone-500 mt-4 mb-8 max-w-md">
             Alegi un pachet o singură dată, după cât de mult vrei să fii văzut.
             Cu cand anunțul tău e într-un pachet mai generos, apare în mai multe
-            categorii deodată — fără să-l postezi de mai multe ori.
+            categorii deodată fără să-l postezi de mai multe ori.
           </p>
 
           <div className="space-y-3">
@@ -189,7 +189,7 @@ export default function GhidContinut() {
         {/* ——— ÎNCHEIERE ——— */}
         <section className="py-12 text-center">
           <p className="text-lg font-medium text-stone-700 leading-relaxed max-w-sm mx-auto">
-            Atât. Simplu, ca pe vremuri — doar că acum
+            Atât. Simplu, ca pe vremuri doar că acum
             <br className="hidden sm:block" /> piața încape în buzunar.
           </p>
           <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.25em] text-stone-300 pointer-events-none">
