@@ -101,7 +101,6 @@ export const Home: React.FC<HomeProps> = ({
   // 2. Fetch orașe când se schimbă filterCounty
   useEffect(() => {
     if (filterCounty) {
-      // SCHIMBARE AICI: caută după c.name, nu c.county_name
       const countyObj = counties.find((c: any) => c.name === filterCounty);
 
       if (countyObj) {
@@ -109,10 +108,7 @@ export const Home: React.FC<HomeProps> = ({
         fetch(`${API_URL}/geo/locations/${countyObj.county_code}`)
           .then((res) => res.json())
           .then((data) => {
-            // AICI: Verificăm dacă data este array sau are proprietatea data
             const locations = Array.isArray(data) ? data : data.data || [];
-
-            // SCHIMBARE AICI: folosim loc.name conform noului API
             setAvailableCities(locations.map((loc: any) => loc.name));
             setFilterCity("");
           })
@@ -149,12 +145,10 @@ export const Home: React.FC<HomeProps> = ({
         .trim();
 
     return ads.filter((ad) => {
-      // 1. Căutare text
       const matchesSearch =
         ad.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ad.description.toLowerCase().includes(searchTerm.toLowerCase());
 
-      // 2. Filtru Categorie
       let matchesCategory = true;
       if (selectedCategory) {
         const target = normalize(selectedCategory);
@@ -165,16 +159,13 @@ export const Home: React.FC<HomeProps> = ({
           }) || false;
       }
 
-      // 3. Locație (Județ și Oraș)
       const matchesCounty = filterCounty ? ad.county === filterCounty : true;
       const matchesCity = filterCity ? ad.city === filterCity : true;
 
-      // 4. Favorite
       const matchesFavorite = showFavoritesOnly
         ? favoriteIds.includes(ad.id)
         : true;
 
-      // 5. Filtrare pe rută (dacă searchMode e route)
       const matchesRoute =
         searchMode === "route" && calculatedRouteCounties.length > 0
           ? calculatedRouteCounties.includes(ad.county)
@@ -221,6 +212,12 @@ export const Home: React.FC<HomeProps> = ({
 
   return (
     <div className="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-12 py-6 md:py-10">
+      {/* ===== ELEMENT ADAUGAT PENTRU SEO ===== */}
+      <h1 className="sr-only">
+        Locallio – Piața Online a Producătorilor Locali din România | Hrană
+        Curată de la Oameni Gospodari
+      </h1>
+
       <div className="mb-8 md:mb-12 overflow-hidden rounded-[2rem] md:rounded-[3rem]">
         <Carousel slides={heroSlides} />
       </div>
@@ -291,7 +288,6 @@ export const Home: React.FC<HomeProps> = ({
                     >
                       <option value="">Toată România</option>
                       {counties.map((c) => (
-                        /* Am schimbat din c.county_name în c.name */
                         <option key={c.county_code} value={c.name}>
                           {c.name}
                         </option>
@@ -326,7 +322,6 @@ export const Home: React.FC<HomeProps> = ({
                   )}
                 </div>
               ) : (
-                /* SECȚIUNEA PENTRU RUTĂ (LA DRUM) */
                 <div className="space-y-4 bg-emerald-50/40 p-5 rounded-[2rem] border border-emerald-100">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-emerald-700 uppercase tracking-widest block">
@@ -339,7 +334,6 @@ export const Home: React.FC<HomeProps> = ({
                     >
                       <option value="">Alege Județ</option>
                       {counties.map((c) => (
-                        /* Am schimbat din c.county_name în c.name */
                         <option key={c.county_code} value={c.name}>
                           {c.name}
                         </option>
@@ -357,7 +351,6 @@ export const Home: React.FC<HomeProps> = ({
                     >
                       <option value="">Alege Județ</option>
                       {counties.map((c) => (
-                        /* Am schimbat din c.county_name în c.name */
                         <option key={c.county_code} value={c.name}>
                           {c.name}
                         </option>
@@ -412,9 +405,10 @@ export const Home: React.FC<HomeProps> = ({
             ) : processedAds.length === 0 ? (
               <div className="py-20 text-center bg-stone-50 rounded-[2.5rem] border border-dashed border-stone-200">
                 <ShoppingBasket className="w-16 h-16 text-stone-200 mx-auto mb-6" />
-                <h3 className="text-xl font-bold text-stone-900 mb-2">
+                {/* UPGRADE SEO: Schimbat din h3 în h2 */}
+                <h2 className="text-xl font-bold text-stone-900 mb-2">
                   Niciun rezultat
-                </h3>
+                </h2>
                 <p className="text-stone-400 text-sm max-w-sm mx-auto">
                   Încearcă să schimbi categoria sau zona de căutare.
                 </p>
