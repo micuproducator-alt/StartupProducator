@@ -46,10 +46,8 @@ export const Home: React.FC<HomeProps> = ({
   // Referință pentru secțiunea cu harta
   const mapRef = useRef<HTMLDivElement>(null);
 
-  // State-uri pentru locații din API
-  const [counties, setCounties] = useState<
-    { county_code: number; county_name: string }[]
-  >([]);
+  // State-uri pentru locații din API (modificat la any[] pentru flexibilitate cu DB)
+  const [counties, setCounties] = useState<any[]>([]);
   const [filterCounty, setFilterCounty] = useState("");
   const [filterCity, setFilterCity] = useState("");
   const [availableCities, setAvailableCities] = useState<string[]>([]);
@@ -89,11 +87,10 @@ export const Home: React.FC<HomeProps> = ({
   // Auto-scroll la hartă când se selectează "La Drum"
   useEffect(() => {
     if (searchMode === "route") {
-      // Un mic timeout asigură faptul că elementul este montat în DOM și vizibil
       setTimeout(() => {
         mapRef.current?.scrollIntoView({
           behavior: "smooth",
-          block: "center", // Îl centrează frumos pe ecran
+          block: "center",
         });
       }, 100);
     }
@@ -103,7 +100,11 @@ export const Home: React.FC<HomeProps> = ({
   useEffect(() => {
     fetch(`${API_URL}/geo/counties`)
       .then((res) => res.json())
-      .then((data) => setCounties(data))
+      .then((data) => {
+        // Ne asigurăm că extragem array-ul corect dacă vine împachetat în data.data
+        const countiesData = Array.isArray(data) ? data : data.data || [];
+        setCounties(countiesData);
+      })
       .catch((err) => console.error("Eroare la încărcarea județelor:", err));
   }, []);
 
@@ -117,11 +118,15 @@ export const Home: React.FC<HomeProps> = ({
   // Fetch orașe când se schimbă filterCounty
   useEffect(() => {
     if (filterCounty) {
-      const countyObj = counties.find((c) => c.county_name === filterCounty);
+      const countyObj = counties.find((c) => {
+        const name = c.county_name || c.name || "";
+        return name === filterCounty;
+      });
 
       if (countyObj) {
+        const code = countyObj.county_code || countyObj.id;
         setLoadingGeo(true);
-        fetch(`${API_URL}/geo/locations/${countyObj.county_code}`)
+        fetch(`${API_URL}/geo/locations/${code}`)
           .then((res) => res.json())
           .then((data) => {
             const locations = Array.isArray(data) ? data : data.data || [];
@@ -304,11 +309,18 @@ export const Home: React.FC<HomeProps> = ({
                       className="w-full bg-stone-50 border-none rounded-2xl py-4 px-4 text-sm font-bold text-stone-800 outline-none cursor-pointer"
                     >
                       <option value="">Toată România</option>
-                      {counties.map((c) => (
-                        <option key={c.county_code} value={c.county_name}>
-                          {c.county_name}
-                        </option>
-                      ))}
+                      {counties.map((c, index) => {
+                        const cName =
+                          c.county_name ||
+                          c.name ||
+                          (typeof c === "string" ? c : "");
+                        const cCode = c.county_code || c.id || index;
+                        return (
+                          <option key={cCode} value={cName}>
+                            {cName}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
 
@@ -339,6 +351,7 @@ export const Home: React.FC<HomeProps> = ({
                   )}
                 </div>
               ) : (
+                /* MODIFICARE AICI PENTRU A REZOLVA DROPDOWN-URILE DIN IMAGINEA 1NuMerge.JPG */
                 <div className="space-y-4 bg-emerald-50/40 p-5 rounded-[2rem] border border-emerald-100">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-emerald-700 uppercase tracking-widest block">
@@ -347,14 +360,21 @@ export const Home: React.FC<HomeProps> = ({
                     <select
                       value={routeStartCounty}
                       onChange={(e) => setRouteStartCounty(e.target.value)}
-                      className="w-full bg-white rounded-xl p-3 text-sm font-bold shadow-sm outline-none"
+                      className="w-full bg-white rounded-xl p-3 text-sm font-bold shadow-sm outline-none cursor-pointer text-stone-800"
                     >
                       <option value="">Alege Județ</option>
-                      {counties.map((c) => (
-                        <option key={c.county_code} value={c.county_name}>
-                          {c.county_name}
-                        </option>
-                      ))}
+                      {counties.map((c, index) => {
+                        const cName =
+                          c.county_name ||
+                          c.name ||
+                          (typeof c === "string" ? c : "");
+                        const cCode = c.county_code || c.id || index;
+                        return (
+                          <option key={cCode} value={cName}>
+                            {cName}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -364,14 +384,21 @@ export const Home: React.FC<HomeProps> = ({
                     <select
                       value={routeEndCounty}
                       onChange={(e) => setRouteEndCounty(e.target.value)}
-                      className="w-full bg-white rounded-xl p-3 text-sm font-bold shadow-sm outline-none"
+                      className="w-full bg-white rounded-xl p-3 text-sm font-bold shadow-sm outline-none cursor-pointer text-stone-800"
                     >
                       <option value="">Alege Județ</option>
-                      {counties.map((c) => (
-                        <option key={c.county_code} value={c.county_name}>
-                          {c.county_name}
-                        </option>
-                      ))}
+                      {counties.map((c, index) => {
+                        const cName =
+                          c.county_name ||
+                          c.name ||
+                          (typeof c === "string" ? c : "");
+                        const cCode = c.county_code || c.id || index;
+                        return (
+                          <option key={cCode} value={cName}>
+                            {cName}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
                 </div>
@@ -398,7 +425,7 @@ export const Home: React.FC<HomeProps> = ({
         <main className="flex-1 space-y-8 md:space-y-12">
           {(searchMode === "route" || filterCounty) && (
             <motion.div
-              ref={mapRef} /* Referința mapată pentru scroll automat */
+              ref={mapRef}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="w-full h-[300px] md:h-[450px] rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white"
