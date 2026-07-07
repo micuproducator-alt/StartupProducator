@@ -242,12 +242,32 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
       );
 
       if (resultAd) {
+        // 1. Activăm anunțul în Supabase
         const { error: updateError } = await supabase
           .from("ads")
           .update({ status: "active" })
           .eq("id", resultAd.id);
 
         if (updateError) console.error(updateError);
+
+        // ⚡️ FIX EMAIL: Declanșăm trimiterea emailului de confirmare prin API-ul tău de backend
+        try {
+          const apiUrl =
+            import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+          await fetch(`${apiUrl}/payment/success-webhook-fallback`, {
+            // sau ruta ta specifică de email/success
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              adId: resultAd.id,
+              email: resultAd.email,
+              isFree: true,
+            }),
+          });
+          console.log("✅ Email-ul de confirmare a fost solicitat cu succes!");
+        } catch (emailErr) {
+          console.error("Eroare la declanșarea emailului:", emailErr);
+        }
 
         setCreatedAdData({
           adId: resultAd.id,
@@ -556,12 +576,13 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
             <button
               type="button"
               onClick={() => {
-                if (onClose) onClose();
-                window.location.href = "/?payment=success";
+                if (onClose) {
+                  onClose(); // Închide modalul instant în interfață, fără refresh de pagină
+                }
               }}
               className="w-full bg-stone-100 text-stone-600 text-xs font-bold py-4 rounded-2xl cursor-pointer hover:bg-stone-200 hover:text-stone-800 transition-all duration-200 active:scale-[0.99]"
             >
-              Poate mai târziu !
+              Poate mai târziu, doar să am vânzare!
             </button>
           </div>
         </div>
