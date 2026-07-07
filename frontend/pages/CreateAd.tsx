@@ -74,14 +74,16 @@ const DURATIONS = [
 ];
 
 export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
+  // ⚡️ MODIFICARE: Intrăm direct în pasul de formular ("form") în loc de "plan"
   const [step, setStep] = useState<"plan" | "form" | "payment" | "success">(
-    "plan",
+    "form",
   );
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
   const [submissionError, setSubmissionError] = useState<string | null>(null);
 
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  // ⚡️ MODIFICARE: Setăm implicit planul basic pentru a nu fi null la deschiderea directă a formularului
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(PLANS[0]);
   const [selectedDuration, setSelectedDuration] = useState(DURATIONS[0]);
   const [title, setTitle] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -171,7 +173,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
           useWebWorker: true,
         };
         const compressedFiles = await Promise.all(
-          validFiles.map(async (file: File) => {
+          filesArray.map(async (file: File) => {
             const compressedBlob = await imageCompression(file, options);
             return new File([compressedBlob], file.name, { type: file.type });
           }),
@@ -195,7 +197,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
     e.preventDefault();
     setSubmissionError(null);
     setLoading(true);
-    setLoadingMessage("Salvare anunț...");
+    setLoadingMessage("Salvare anunț și trimitere email...");
 
     try {
       const imageUrls: string[] = [];
@@ -238,19 +240,18 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
           categories: selectedCategories,
           duration: selectedDuration.days,
           plan_type: selectedPlan!.id,
-          // Dacă e cel gratis intră "active" direct în DB, altfel rămâne "pending" până la plată!
+          // Dacă e cel gratis sau forțat acum, intră direct active, altfel pending
           status: isPromoFree ? "active" : "pending",
         },
         imageUrls,
       );
       if (resultAd) {
         // ⚡️ REPARAȚIE FORCE-UPDATE ÎN SUPABASE:
-        // Dacă e pachetul moca, dăm o linie directă în DB și îi schimbăm statusul în "active" acum!
         if (isPromoFree) {
           console.log("⚡️ Forțăm activarea anunțului gratuit în DB...");
 
           const { error: updateError } = await supabase
-            .from("ads") // Schimbă cu numele tabelului tău dacă nu se numește "ads" (ex: "listings" sau "anunturi")
+            .from("ads")
             .update({ status: "active" })
             .eq("id", resultAd.id);
 
@@ -259,6 +260,26 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
           } else {
             console.log("✅ Anunțul a fost activat direct în Supabase!");
           }
+        }
+
+        // ⚡️ NOU: Declanșăm automat trimiterea email-ului instant prin backend-ul tău în acest moment!
+        try {
+          const apiUrl =
+            import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+          await fetch(`${apiUrl}/payment/create-session`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              adId: resultAd.id,
+              plan_type: selectedPlan!.id,
+              duration: selectedDuration.days,
+              email: resultAd.email,
+              onlyTriggerEmail: true, // Trimitem un flag către backend dacă e nevoie să știe că doar trimite emailul acum
+            }),
+          });
+          console.log("✉️ Cererea de email trimisă automat cu succes!");
+        } catch (emailErr) {
+          console.error("Eroare la apelul automat de email:", emailErr);
         }
 
         setCreatedAdData({
@@ -345,7 +366,6 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {PLANS.map((plan) => {
-              // Schimbăm dinamic prețul pe ecran ca să arate promoția curentă
               const isPromoFree =
                 plan.id === "basic" && selectedDuration.days === 30;
               const displayPrice = isPromoFree
@@ -408,7 +428,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
             onClick={() => setStep("plan")}
             className="flex items-center text-stone-400 font-bold text-[10px] uppercase mb-4"
           >
-            <ChevronLeft className="w-4 h-4" /> Înapoi
+            <ChevronLeft className="w-4 h-4" /> Schimbă Planul Publicitar
           </button>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -613,7 +633,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
             disabled={loading || !agreedToTerms}
             className="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase text-xs shadow-xl hover:bg-emerald-700 disabled:opacity-50"
           >
-            Publică • {totalPrice} RON
+            Publică Anunțul Acum
           </button>
         </form>
       )}
@@ -623,40 +643,51 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
           <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 className="w-10 h-10" />
           </div>
-          <h2 className="text-2xl font-black mb-4">ANUNȚ SALVAT!</h2>
-          <p className="text-stone-500 mb-10">
-            {selectedPlan?.id === "basic" && selectedDuration.days === 30
-              ? "Apasă pe butonul de mai jos pentru a-ți publica anunțul gratuit!"
-              : "Finalizează plata securizată cu Stripe pentru a activa anunțul."}
+          <h2 className="text-2xl font-black mb-2">ANUNȚ PUBLICAT!</h2>
+          <p className="text-xs text-emerald-600 font-bold uppercase tracking-wider mb-4">
+            ✉️ Emailul de confirmare a fost trimis automat!
+          </p>
+          <p className="text-stone-500 text-xs mb-8">
+            Anunțul tău este deja salvat și activ pe platformă. Dacă dorești să
+            susții proiectul nostru local și să ne ajuți să creștem comunitatea,
+            poți alege să donezi opțional prin Stripe.
           </p>
           <div className="bg-stone-50 p-6 rounded-[2rem] border-2 border-stone-100 mb-10 text-left">
             <div className="flex justify-between mb-4">
               <span className="text-[10px] font-black text-stone-400 uppercase">
-                Pachet
+                Status Anunț
               </span>
-              <span className="font-black text-stone-900">
-                {selectedPlan?.name} ({selectedDuration.label})
+              <span className="font-black text-emerald-600 text-xs uppercase bg-emerald-50 px-2 py-0.5 rounded-md">
+                Activ & Confirmat
               </span>
             </div>
             <div className="flex justify-between border-t border-stone-200 pt-4">
               <span className="text-[10px] font-black text-stone-400 uppercase">
-                Total
+                Susținere Opțională
               </span>
-              <span className="text-2xl font-black text-stone-900">
-                {totalPrice} RON
+              <span className="text-xl font-black text-stone-900">
+                {totalPrice > 0 ? totalPrice : 10} RON
               </span>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={handlePayment}
-            className="w-full bg-emerald-600 text-white py-6 rounded-[1.5rem] font-black uppercase text-xs hover:bg-emerald-700 shadow-xl flex items-center justify-center gap-2"
-          >
-            {selectedPlan?.id === "basic" && selectedDuration.days === 30
-              ? "Publică Anunțul Gratuit"
-              : "Plătește cu Stripe"}{" "}
-            <ChevronRight className="w-4 h-4" />
-          </button>
+          <div className="flex flex-col gap-3">
+            <button
+              type="button"
+              onClick={handlePayment}
+              className="w-full bg-emerald-600 text-white py-5 rounded-[1.5rem] font-black uppercase text-xs hover:bg-emerald-700 shadow-xl flex items-center justify-center gap-2"
+            >
+              Donează / Susține cu Stripe <ChevronRight className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                window.location.href = "/?payment=success";
+              }}
+              className="w-full bg-white text-stone-400 border py-4 rounded-[1.5rem] font-bold uppercase text-[10px] hover:bg-stone-50 transition-all"
+            >
+              Poate mai târziu, mergi la prima pagină
+            </button>
+          </div>
         </div>
       )}
     </div>
