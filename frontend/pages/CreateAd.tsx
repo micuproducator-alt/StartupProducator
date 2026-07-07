@@ -4,12 +4,11 @@ import { generateSlug } from "../utils/slug";
 import { createFullAd } from "../services/adsService";
 import {
   Loader2,
-  ImageIcon,
   CheckCircle2,
   AlertCircle,
   ChevronRight,
   ChevronLeft,
-  Coffee, // Importat pentru secțiunea de donații
+  Coffee,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import imageCompression from "browser-image-compression";
@@ -30,8 +29,7 @@ interface Plan {
   features: string[];
 }
 
-// --- CONSTANTE (COMENTATE ACUM, DAR PĂSTRATE PENTRU VIITOR) ---
-/*
+// Păstrăm constantele originale active pentru a nu strica nicio referință viitoare
 const PLANS: Plan[] = [
   {
     id: "basic",
@@ -74,25 +72,9 @@ const DURATIONS = [
   { days: 180, multiplier: 6, discount: 10, label: "180 Zile" },
   { days: 360, multiplier: 12, discount: 15, label: "360 Zile" },
 ];
-*/
-
-// Folosim un plan și o durată implicite de tip structură similară ca să nu alterăm metodele de dedesubt
-const DEFAULT_PLAN: Plan = {
-  id: "basic",
-  name: "Starter",
-  productCount: 1,
-  basePrice: 0,
-  features: [],
-};
-const DEFAULT_DURATION = {
-  days: 30,
-  multiplier: 1,
-  discount: 0,
-  label: "30 Zile",
-};
 
 export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
-  // ⚡️ MODIFICARE: Pornim direct de la pasul "form"
+  // Pornim direct de la pasul "form"
   const [step, setStep] = useState<"plan" | "form" | "payment" | "success">(
     "form",
   );
@@ -101,64 +83,44 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
   const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   // Setăm automat planul gratuit pe stările interne
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(DEFAULT_PLAN);
-  const [selectedDuration, setSelectedDuration] = useState(DEFAULT_DURATION);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(PLANS[0]);
+  const [selectedDuration, setSelectedDuration] = useState(DURATIONS[0]);
 
-  const title = useState("");
-  const setTitle = title[1];
-  const selectedCategories = useState<string[]>([]);
-  const setSelectedCategories = selectedCategories[1];
-  const price = useState("");
-  const setPrice = price[1];
-  const description = useState("");
-  const setDescription = description[1];
-  const email = useState("");
-  const setEmail = email[1];
-  const phoneNumber = useState("");
-  const setPhoneNumber = phoneNumber[1];
-  const images = useState<File[]>([]);
-  const setImages = images[1];
-  const previews = useState<string[]>([]);
-  const setPreviews = previews[1];
-  const agreedToTerms = useState(false);
-  const setAgreedToTerms = agreedToTerms[1];
+  // TOATE STATE-URILE RECONSTRUITE CORECT (Fără array destructuring greșit)
+  const [title, setTitle] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [price, setPrice] = useState("");
+  const [description, setDescription] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [images, setImages] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-  const counties = useState<{ county_code: number; name: string }[]>([]);
-  const setCounties = counties[1];
-  const availableCities = useState<{ id: number; name: string }[]>([]);
-  const setAvailableCities = availableCities[1];
-  const selectedCountyCode = useState("");
-  const setSelectedCountyCode = selectedCountyCode[1];
-  const city = useState("");
-  const setCity = city[1];
-  const loadingGeo = useState(false);
-  const setLoadingGeo = loadingGeo[1];
+  const [counties, setCounties] = useState<
+    { county_code: number; name: string }[]
+  >([]);
+  const [availableCities, setAvailableCities] = useState<
+    { id: number; name: string }[]
+  >([]);
+  const [selectedCountyCode, setSelectedCountyCode] = useState("");
+  const [city, setCity] = useState("");
+  const [loadingGeo, setLoadingGeo] = useState(false);
 
-  const createdAdData = useState<{
+  const [createdAdData, setCreatedAdData] = useState<{
     adId: string;
     plan_type: string;
     email: string;
   } | null>(null);
-  const setCreatedAdData = createdAdData[1];
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // --- LOGICĂ CALCUL PREȚ (COMENTATĂ / SETATĂ LA 0) ---
+  // Forțat complet gratuit acum pentru buton, dar păstrăm useMemo curat
   const totalPrice = useMemo(() => {
-    return 0; // Forțat complet gratuit acum
-    /*
-    if (!selectedPlan) return 0;
-    if (selectedPlan.id === "basic" && selectedDuration.days === 30) {
-      return 0;
-    }
-    const unitDiscount = Math.ceil(
-      selectedPlan.basePrice * (selectedDuration.discount / 100),
-    );
-    const discountedUnitPrice = selectedPlan.basePrice - unitDiscount;
-    return discountedUnitPrice * selectedDuration.multiplier;
-    */
+    return 0;
   }, []);
 
+  // Fetch Județe la mount
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
@@ -168,30 +130,34 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
         setCounties(data);
       })
       .catch((err) => console.error(err));
-  }, [setCounties]);
+  }, []);
 
+  // REPARARE SELECTARE JUDEȚ -> ORAȘ: Funcționează instant acum
   useEffect(() => {
-    if (selectedCountyCode[0]) {
+    if (selectedCountyCode) {
       setLoadingGeo(true);
       const apiUrl =
         import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
-      fetch(`${apiUrl}/geo/locations/${selectedCountyCode[0]}`)
+      fetch(`${apiUrl}/geo/locations/${selectedCountyCode}`)
         .then((res) => res.json())
         .then((data) => {
           setAvailableCities(data);
           setCity("");
         })
+        .catch((err) => console.error("Eroare la aducerea oraselor:", err))
         .finally(() => setLoadingGeo(false));
+    } else {
+      setAvailableCities([]);
     }
-  }, [selectedCountyCode, setAvailableCities, setCity, setLoadingGeo]);
+  }, [selectedCountyCode]);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files) as File[];
       const validFiles = filesArray.filter((f) => f.type.startsWith("image/"));
 
-      if (images[0].length + validFiles.length > 5) {
+      if (images.length + validFiles.length > 5) {
         alert("Maxim 5 fotografii.");
         return;
       }
@@ -234,7 +200,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
 
     try {
       const imageUrls: string[] = [];
-      for (const img of images[0]) {
+      for (const img of images) {
         const fileName = `${Math.random().toString(36).substring(7)}-${Date.now()}.${img.name.split(".").pop()}`;
 
         const { error: uploadError } = await supabase.storage
@@ -252,45 +218,36 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
 
         if (data?.publicUrl) imageUrls.push(data.publicUrl);
       }
-      const countyName =
-        counties[0].find(
-          (c) => c.county_code === parseInt(selectedCountyCode[0]),
-        )?.name || "";
-      const adSlug = `${generateSlug(title[0])}-${Math.random().toString(36).substring(7)}`;
 
-      // Pachetul este forțat ca fiind gratuit (basic + 30 zile)
-      const isPromoFree = true;
+      const countyName =
+        counties.find((c) => c.county_code === parseInt(selectedCountyCode))
+          ?.name || "";
+      const adSlug = `${generateSlug(title)}-${Math.random().toString(36).substring(7)}`;
 
       const resultAd = await createFullAd(
         {
-          title: title[0],
+          title,
           slug: adSlug,
-          description: description[0],
-          price: parseFloat(price[0]),
-          email: email[0],
-          phoneNumber: phoneNumber[0],
-          location: { county: countyName, city: city[0] },
-          categories: selectedCategories[0],
+          description,
+          price: parseFloat(price),
+          email,
+          phoneNumber,
+          location: { county: countyName, city },
+          categories: selectedCategories,
           duration: selectedDuration.days,
           plan_type: selectedPlan!.id,
-          status: "active", // Se activează direct în DB fiind gratuit
+          status: "active",
         },
         imageUrls,
       );
-      if (resultAd) {
-        if (isPromoFree) {
-          console.log("⚡️ Forțăm activarea anunțului gratuit în DB...");
-          const { error: updateError } = await supabase
-            .from("ads")
-            .update({ status: "active" })
-            .eq("id", resultAd.id);
 
-          if (updateError) {
-            console.error("Eroare la activarea forțată:", updateError);
-          } else {
-            console.log("✅ Anunțul a fost activat direct în Supabase!");
-          }
-        }
+      if (resultAd) {
+        const { error: updateError } = await supabase
+          .from("ads")
+          .update({ status: "active" })
+          .eq("id", resultAd.id);
+
+        if (updateError) console.error(updateError);
 
         setCreatedAdData({
           adId: resultAd.id,
@@ -298,7 +255,6 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
           email: resultAd.email,
         });
 
-        // ⚡️ MODIFICARE: În loc de pasul "payment" (Stripe), trimitem utilizatorul direct la ecranul de succes/donație!
         setStep("success");
       }
     } catch (err: any) {
@@ -306,39 +262,6 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // --- LOGICĂ PLATĂ SECRETA STRIPE (COMENTATĂ ACUM) ---
-  const handlePayment = async () => {
-    /*
-    if (!createdAdData || !selectedPlan) return;
-    const isPromoFree = selectedPlan.id === "basic" && selectedDuration.days === 30;
-    if (isPromoFree) {
-      window.location.href = "/?payment=success";
-      return;
-    }
-    setLoading(true);
-    setLoadingMessage("Te conectăm la Stripe...");
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
-      const response = await fetch(`${apiUrl}/payment/create-session`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          adId: createdAdData.adId,
-          plan_type: selectedPlan.id,
-          duration: selectedDuration.days,
-          email: createdAdData.email,
-        }),
-      });
-      const session = await response.json();
-      if (session.url) window.location.href = session.url;
-    } catch (err) {
-      setSubmissionError("Eroare plată.");
-    } finally {
-      setLoading(false);
-    }
-    */
   };
 
   return (
@@ -350,10 +273,31 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
         </div>
       )}
 
-      {/* --- PASUL PLAN (COMENTAT COMPLET) --- */}
-      {/* {step === "plan" && (
+      {/* --- AICI ESTE TOT CODUL DE DESIGN PT PASUL PLAN, COMENTAT CURAT DOAR ÎN INTERFAȚĂ --- */}
+      {/* 
+      {step === "plan" && (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          ... (toată secțiunea anterioară de planuri) ...
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-black text-stone-900 tracking-tight md:text-4xl">
+              Alege Planul Potrivit
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {PLANS.map((plan) => (
+              <div
+                key={plan.id}
+                onClick={() => setSelectedPlan(plan)}
+                className={`border-2 p-6 rounded-3xl cursor-pointer transition-all ${
+                  selectedPlan?.id === plan.id ? "border-emerald-500 bg-emerald-50/30" : "border-stone-100 bg-white"
+                }`}
+              >
+                <h3 className="font-black text-xl mb-2">{plan.name}</h3>
+                <ul className="space-y-2 mb-4">
+                  {plan.features.map((f, i) => <li key={i} className="text-xs text-stone-500">{f}</li>)}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
       )} 
       */}
@@ -363,16 +307,6 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
           onSubmit={handleSubmit}
           className="space-y-6 max-w-2xl mx-auto animate-in fade-in slide-in-from-right-4 duration-500"
         >
-          {/* Butonul Înapoi spre planuri a fost comentat deoarece intrăm direct pe formular */}
-          {/* <button
-            type="button"
-            onClick={() => setStep("plan")}
-            className="flex items-center text-stone-400 font-bold text-[10px] uppercase mb-4"
-          >
-            <ChevronLeft className="w-4 h-4" /> Înapoi
-          </button> 
-          */}
-
           <div className="text-center md:text-left mb-2">
             <h2 className="text-2xl font-black text-stone-900 tracking-tight">
               Publică un Anunț Nou
@@ -387,7 +321,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
             <input
               type="text"
               required
-              value={title[0]}
+              value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="md:col-span-2 bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none focus:border-emerald-500"
               placeholder="Titlu"
@@ -395,7 +329,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
             <input
               type="number"
               required
-              value={price[0]}
+              value={price}
               onChange={(e) => setPrice(e.target.value)}
               className="bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none focus:border-emerald-500"
               placeholder="Preț"
@@ -408,16 +342,14 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
                 key={cat}
                 type="button"
                 onClick={() => {
-                  if (selectedCategories[0].includes(cat))
+                  if (selectedCategories.includes(cat))
                     setSelectedCategories((prev) =>
                       prev.filter((c) => c !== cat),
                     );
-                  else if (
-                    selectedCategories[0].length < 3 // Permitem o selecție flexibilă în mod implicit
-                  )
+                  else if (selectedCategories.length < 3)
                     setSelectedCategories((prev) => [...prev, cat]);
                 }}
-                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase border-2 transition-all ${selectedCategories[0].includes(cat) ? "bg-stone-900 text-white border-stone-900" : "bg-white text-stone-400 border-stone-100"}`}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase border-2 transition-all ${selectedCategories.includes(cat) ? "bg-stone-900 text-white border-stone-900" : "bg-white text-stone-400 border-stone-100"}`}
               >
                 {cat}
               </button>
@@ -426,27 +358,28 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
 
           <div className="grid grid-cols-2 gap-4">
             <select
-              value={selectedCountyCode[0]}
+              value={selectedCountyCode}
               onChange={(e) => setSelectedCountyCode(e.target.value)}
               className="bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none"
               required
             >
               <option value="">Județ</option>
-              {counties[0].map((c) => (
+              {counties.map((c) => (
                 <option key={c.county_code} value={c.county_code}>
                   {c.name}
                 </option>
               ))}
             </select>
+
             <select
-              value={city[0]}
+              value={city}
               onChange={(e) => setCity(e.target.value)}
-              disabled={!selectedCountyCode[0] || loadingGeo[0]}
+              disabled={!selectedCountyCode || loadingGeo}
               className="bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none disabled:opacity-50"
               required
             >
-              <option value="">{loadingGeo[0] ? "..." : "Oraș"}</option>
-              {availableCities[0].map((c) => (
+              <option value="">{loadingGeo ? "Se încarcă..." : "Oraș"}</option>
+              {availableCities.map((c) => (
                 <option key={c.id} value={c.name}>
                   {c.name}
                 </option>
@@ -457,16 +390,16 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
           <textarea
             required
             rows={4}
-            value={description[0]}
+            value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="w-full bg-stone-50 border-2 p-4 rounded-2xl outline-none focus:border-emerald-500"
             placeholder="Descriere"
           />
 
           <div className="space-y-4">
-            {previews[0].length > 0 && (
+            {previews.length > 0 && (
               <div className="grid grid-cols-5 gap-2">
-                {previews[0].map((src, idx) => (
+                {previews.map((src, idx) => (
                   <div
                     key={idx}
                     className="relative aspect-square rounded-xl overflow-hidden border-2 border-stone-100"
@@ -479,8 +412,8 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
                     <button
                       type="button"
                       onClick={() => {
-                        setImages(images[0].filter((_, i) => i !== idx));
-                        setPreviews(previews[0].filter((_, i) => i !== idx));
+                        setImages(images.filter((_, i) => i !== idx));
+                        setPreviews(previews.filter((_, i) => i !== idx));
                       }}
                       className="absolute inset-0 bg-rose-600/70 text-white opacity-0 hover:opacity-100 transition-opacity text-[8px] font-black uppercase"
                     >
@@ -491,7 +424,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
               </div>
             )}
 
-            {previews[0].length < 5 && (
+            {previews.length < 5 && (
               <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-stone-300 rounded-2xl bg-stone-50 cursor-pointer hover:bg-stone-100 p-4 text-center transition-all">
                 <div className="bg-emerald-100 p-3 rounded-full mb-2">
                   <svg
@@ -517,13 +450,8 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
                   </svg>
                 </div>
                 <span className="text-sm font-black text-stone-800">
-                  Apasă aici și adaugă poze la produs
+                  Apasă aici și adaugă poze
                 </span>
-                <span className="text-xs text-stone-400 mt-0.5">
-                  Fă o poză sau alege din galeria telefonului (
-                  {previews[0].length}/5 poze)
-                </span>
-
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -540,7 +468,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
             <input
               type="email"
               required
-              value={email[0]}
+              value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none"
               placeholder="Email"
@@ -548,7 +476,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
             <input
               type="tel"
               required
-              value={phoneNumber[0]}
+              value={phoneNumber}
               onChange={(e) =>
                 setPhoneNumber(e.target.value.replace(/\D/g, ""))
               }
@@ -561,7 +489,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
             <input
               type="checkbox"
               id="agreed"
-              checked={agreedToTerms[0]}
+              checked={agreedToTerms}
               onChange={(e) => setAgreedToTerms(e.target.checked)}
               className="w-5 h-5 mt-1 accent-emerald-600"
               required
@@ -582,29 +510,26 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
 
           <button
             type="submit"
-            disabled={loading || !agreedToTerms[0]}
+            disabled={loading || !agreedToTerms}
             className="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase text-xs shadow-xl hover:bg-emerald-700 disabled:opacity-50"
           >
-            Publică Anunțul Gratuit • 0 RON
+            Publică Anunțul Gratuit • {totalPrice} RON
           </button>
         </form>
       )}
 
-      {/* --- PASUL SUCCES + DONAȚIE (INLOCUIEȘTE PASUL VECHI DE PAYMENT STRIPE) --- */}
+      {/* --- ECRAN SUCCES --- */}
       {step === "success" && (
         <div className="text-center animate-in zoom-in duration-500 max-w-md mx-auto py-6 flex flex-col items-center space-y-6">
-          <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shadow-inner animate-bounce">
+          <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shadow-inner">
             <CheckCircle2 className="w-8 h-8" />
           </div>
-
           <div className="space-y-2">
             <h2 className="text-2xl font-black text-stone-900 tracking-tight">
-              Anunțul tău este live pe Locallio!
+              Anunțul tău este live!
             </h2>
-            <p className="text-sm text-stone-500 max-w-sm mx-auto leading-relaxed">
-              Îți mulțumim că ai ales să-ți pui roadele muncii pe raftul nostru
-              virtual. Sperăm să ai parte de cât mai mulți cumpărători
-              gospodari!
+            <p className="text-sm text-stone-500 max-w-sm mx-auto">
+              Vă mulțumim că ați ales Locallio!
             </p>
           </div>
 
@@ -613,11 +538,9 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
               <Coffee size={14} className="text-emerald-600" /> Susții
               platforma?
             </h3>
-            <p className="text-xs text-stone-500 leading-relaxed">
-              Suntem o echipă mică și independentă. Nu avem investitori mari în
-              spate, iar întreținerea hărților interactive și promovarea costă.
-              Dacă platforma îți aduce vânzări și vrei să ne ajuți să o ținem în
-              viață, poți lăsa o mică donație (cât o cafea).
+            <p className="text-xs text-stone-500">
+              Dacă platforma îți aduce vânzări și vrei să ne ajuți să o menținem
+              activă, poți lăsa o mică donație.
             </p>
           </div>
 
@@ -626,20 +549,19 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
               href="https://link-ul-tau-de-stripe-sau-donation.com"
               target="_blank"
               rel="noreferrer"
-              className="w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-black uppercase py-4 rounded-2xl shadow-lg transition-all text-center flex items-center justify-center gap-2"
+              className="w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-black uppercase py-4 rounded-2xl text-center"
             >
               ☕ Lasă o cafea (Donație)
             </a>
             <button
               type="button"
               onClick={() => {
-                // Închidem modalul sau redirectăm pe pagina principală curată
                 if (onClose) onClose();
                 window.location.href = "/?payment=success";
               }}
-              className="w-full bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs font-bold py-4 rounded-2xl transition-all text-center"
+              className="w-full bg-stone-100 text-stone-600 text-xs font-bold py-4 rounded-2xl"
             >
-              Poate mai târziu, doar să am vânzare!
+              Poate mai târziu!
             </button>
           </div>
         </div>
