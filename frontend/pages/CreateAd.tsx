@@ -228,7 +228,6 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
       const isPromoFree =
         selectedPlan!.id === "basic" && selectedDuration.days === 30;
 
-      // ... codul de dinainte de salvarea în baza de date ...
       const resultAd = await createFullAd(
         {
           title,
@@ -239,49 +238,55 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
           phoneNumber,
           location: { county: countyName, city },
           categories: selectedCategories,
-          duration: 30,
-          plan_type: "basic",
-          status: "active",
+          duration: selectedDuration.days,
+          plan_type: selectedPlan!.id,
+          // Dacă e cel gratis sau forțat acum, intră direct active, altfel pending
+          status: isPromoFree ? "active" : "pending",
         },
         imageUrls,
       );
-
       if (resultAd) {
-        // Forțăm starea activă în Supabase
-        await supabase
-          .from("ads")
-          .update({ status: "active" })
-          .eq("id", resultAd.id);
+        // ⚡️ REPARAȚIE FORCE-UPDATE ÎN SUPABASE:
+        if (isPromoFree) {
+          console.log("⚡️ Forțăm activarea anunțului gratuit în DB...");
 
-        // ⚡️ APELUL CORECT CĂTRE BACKEND: Tritem cererea direct către endpoint-ul nou creat
+          const { error: updateError } = await supabase
+            .from("ads")
+            .update({ status: "active" })
+            .eq("id", resultAd.id);
+
+          if (updateError) {
+            console.error("Eroare la activarea forțată:", updateError);
+          } else {
+            console.log("✅ Anunțul a fost activat direct în Supabase!");
+          }
+        }
+
+        // ⚡️ NOU: Declanșăm automat trimiterea email-ului instant prin backend-ul tău în acest moment!
         try {
           const apiUrl =
             import.meta.env.VITE_API_URL || "http://localhost:3000/api";
-          await fetch(`${apiUrl}/ads/send-confirmation-free`, {
+          await fetch(`${apiUrl}/payment/create-session`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              id: resultAd.id,
+              adId: resultAd.id,
+              plan_type: selectedPlan!.id,
+              duration: selectedDuration.days,
               email: resultAd.email,
-              title: title,
+              onlyTriggerEmail: true, // Trimitem un flag către backend dacă e nevoie să știe că doar trimite emailul acum
             }),
           });
-          console.log(
-            "✉️ Cererea de trimitere email prin Brevo a fost trimisă cu succes!",
-          );
+          console.log("✉️ Cererea de email trimisă automat cu succes!");
         } catch (emailErr) {
-          console.error(
-            "Eroare la conectarea cu endpoint-ul de email:",
-            emailErr,
-          );
+          console.error("Eroare la apelul automat de email:", emailErr);
         }
 
         setCreatedAdData({
           adId: resultAd.id,
-          plan_type: "basic",
+          plan_type: selectedPlan!.id,
           email: resultAd.email,
         });
-
         setStep("payment");
       }
     } catch (err: any) {

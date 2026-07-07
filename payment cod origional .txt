@@ -2,7 +2,7 @@ import express from "express";
 import Stripe from "stripe";
 import prisma from "../lib/prisma.js";
 // ⚡ IMPORTĂ FUNCȚIA DE EMAIL (Ajustează calea către fișierul tău EmailService dacă este diferită)
-import { sendPaymentConfirmation } from "../services/emailService";
+import { sendPaymentConfirmation } from "./emailService.js"; 
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -42,9 +42,7 @@ router.post("/create-session", async (req, res) => {
 
     // ⚡ 3. VERIFICARE PENTRU ANUNȚ GRATUIT (0 RON)
     if (priceInRon === 0) {
-      console.log(
-        `🎁 Anunț Gratuit detectat pentru Ad: ${adId}. Activăm direct și trimitem email.`,
-      );
+      console.log(`🎁 Anunț Gratuit detectat pentru Ad: ${adId}. Activăm direct și trimitem email.`);
 
       // Actualizăm statusul anunțului în baza de date ca fiind active
       await prisma.ads.update({
@@ -53,9 +51,7 @@ router.post("/create-session", async (req, res) => {
       });
 
       // Generăm URL-ul de vizualizare/editare pentru email
-      const baseUrl =
-        process.env.FRONTEND_URL?.replace(/\/$/, "") ||
-        "https://miculproducator.ro";
+      const baseUrl = process.env.FRONTEND_URL?.replace(/\/$/, "") || "https://miculproducator.ro";
       const editUrl = `${baseUrl}/#/ad/${adId}`;
 
       // Trimitem e-mailul automat prin Brevo folosind serviciul tău original
@@ -66,20 +62,15 @@ router.post("/create-session", async (req, res) => {
           amount: 0,
           editUrl: editUrl,
         });
-        console.log(
-          `✉️ Email de confirmare trimis cu succes prin Brevo pentru pachetul gratuit.`,
-        );
+        console.log(`✉️ Email de confirmare trimis cu succes prin Brevo pentru pachetul gratuit.`);
       } catch (emailErr: any) {
-        console.error(
-          "⚠️ Anunțul a fost activat, dar e-mailul Brevo a eșuat:",
-          emailErr.message,
-        );
+        console.error("⚠️ Anunțul a fost activat, dar e-mailul Brevo a eșuat:", emailErr.message);
       }
 
       // Returnăm un URL de succes direct către frontend (fără a mai genera sesiune Stripe)
-      return res.json({
+      return res.json({ 
         url: `${baseUrl}/?payment=success`,
-        isFree: true,
+        isFree: true 
       });
     }
 
@@ -110,10 +101,9 @@ router.post("/create-session", async (req, res) => {
       cancel_url: `${process.env.FRONTEND_URL?.replace(/\/$/, "")}/?payment=cancel`,
     });
 
-    console.log(
-      `✅ Stripe Session generată: ${priceInRon} RON pentru Ad: ${adId}`,
-    );
+    console.log(`✅ Stripe Session generată: ${priceInRon} RON pentru Ad: ${adId}`);
     return res.json({ url: session.url });
+
   } catch (error: any) {
     console.error("❌ Stripe/Session Error:", error);
     return res.status(500).json({ error: "Eroare la procesarea cererii." });
