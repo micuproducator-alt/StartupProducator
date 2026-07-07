@@ -559,9 +559,9 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
                 if (onClose) onClose();
                 window.location.href = "/?payment=success";
               }}
-              className="w-full bg-stone-100 text-stone-600 text-xs font-bold py-4 rounded-2xl"
+              className="w-full bg-stone-100 text-stone-600 text-xs font-bold py-4 rounded-2xl cursor-pointer hover:bg-stone-200 hover:text-stone-800 transition-all duration-200 active:scale-[0.99]"
             >
-              Poate mai târziu!
+              Poate mai târziu !
             </button>
           </div>
         </div>
