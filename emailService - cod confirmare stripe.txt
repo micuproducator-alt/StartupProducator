@@ -10,7 +10,7 @@ interface PaymentEmailParams {
 
 /**
  * Trimitem email-ul direct prin API-ul Brevo (REST)
- * Design actualizat pentru Micul Producător - Versiune Anunț Gratuit
+ * Design actualizat pentru Micul Producător
  */
 export const sendPaymentConfirmation = async (
   params: PaymentEmailParams,
@@ -43,17 +43,17 @@ export const sendPaymentConfirmation = async (
         <div style="padding: 10px 0;">
           <p style="font-size: 16px;">Bună ziua,</p>
           
-          <p>Vă informăm că anunțul dumneavoastră <strong>"${adTitle}"</strong> a fost publicat cu succes și este acum activ pe platformă pentru 30 de zile.</p>
+          <p>Vă informăm că anunțul dumneavoastră <strong>"${adTitle}"</strong> a fost publicat cu succes.</p>
           
           <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
             <p style="margin: 0; font-weight: bold; color: #b45309;">⚠️ Atenție la Regulament:</p>
             <p style="margin: 5px 0 0 0; font-size: 14px; color: #444;">
-              Vă rugăm să citiți regulamentul site-ului. Dacă anunțul nu este conform regulilor platformei noastre, acesta va fi moderat sau șters.
+              Vă rugăm să citiți regulamentul site-ului. Dacă anunțul nu este conform regulilor, acesta va fi șters <strong>fără returnarea banilor</strong>.
             </p>
           </div>
 
-          <p><strong>Detalii anunț:</strong><br>
-          Tip pachet: <span style="font-weight: bold;">Gratuit (30 Zile)</span></p>
+          <p><strong>Detalii tranzacție:</strong><br>
+          Suma achitată: <span style="font-weight: bold;">${amount} RON</span></p>
 
           <div style="text-align: center; margin: 35px 0;">
             <a href="${finalUrl}" style="background-color: #2563eb; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 16px;">Verifică Anunțul</a>
