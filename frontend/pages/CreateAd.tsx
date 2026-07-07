@@ -42,39 +42,12 @@ const PLANS: Plan[] = [
       "Suport Standard",
     ],
   },
-  {
-    id: "standard",
-    name: "Grower",
-    productCount: 3,
-    basePrice: 20,
-    features: [
-      "Vinde până la 3 produse",
-      "Vizibil în 3 Categorii",
-      "Recomandat",
-    ],
-  },
-  {
-    id: "premium",
-    name: "Pro Market",
-    productCount: 5,
-    basePrice: 30,
-    features: [
-      "Vinde până la 5 produse",
-      "Vizibil în 5 Categorii",
-      "Suport Prioritar",
-    ],
-  },
 ];
 
-const DURATIONS = [
-  { days: 30, multiplier: 1, discount: 0, label: "30 Zile" },
-  { days: 90, multiplier: 3, discount: 5, label: "90 Zile" },
-  { days: 180, multiplier: 6, discount: 10, label: "180 Zile" },
-  { days: 360, multiplier: 12, discount: 15, label: "360 Zile" },
-];
+const DURATIONS = [{ days: 30, multiplier: 1, discount: 0, label: "30 Zile" }];
 
 export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
-  // ⚡️ MODIFICARE: Intrăm direct în pasul de formular ("form") în loc de "plan"
+  // 1. Intrăm direct în pasul de formular ("form")
   const [step, setStep] = useState<"plan" | "form" | "payment" | "success">(
     "form",
   );
@@ -82,7 +55,6 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
   const [loadingMessage, setLoadingMessage] = useState("");
   const [submissionError, setSubmissionError] = useState<string | null>(null);
 
-  // ⚡️ MODIFICARE: Setăm implicit planul basic pentru a nu fi null la deschiderea directă a formularului
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(PLANS[0]);
   const [selectedDuration, setSelectedDuration] = useState(DURATIONS[0]);
   const [title, setTitle] = useState("");
@@ -113,18 +85,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ⚡️ CALCUL INTERFAȚĂ: Forțăm prețul la 0 RON dacă e Basic la 30 de zile
-  const totalPrice = useMemo(() => {
-    if (!selectedPlan) return 0;
-    if (selectedPlan.id === "basic" && selectedDuration.days === 30) {
-      return 0;
-    }
-    const unitDiscount = Math.ceil(
-      selectedPlan.basePrice * (selectedDuration.discount / 100),
-    );
-    const discountedUnitPrice = selectedPlan.basePrice - unitDiscount;
-    return discountedUnitPrice * selectedDuration.multiplier;
-  }, [selectedPlan, selectedDuration]);
+  const totalPrice = 0; // Forțat la 0 deoarece ai scos plățile
 
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
@@ -173,7 +134,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
           useWebWorker: true,
         };
         const compressedFiles = await Promise.all(
-          filesArray.map(async (file: File) => {
+          validFiles.map(async (file: File) => {
             const compressedBlob = await imageCompression(file, options);
             return new File([compressedBlob], file.name, { type: file.type });
           }),
@@ -197,7 +158,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
     e.preventDefault();
     setSubmissionError(null);
     setLoading(true);
-    setLoadingMessage("Salvare anunț și trimitere email...");
+    setLoadingMessage("Se publică anunțul...");
 
     try {
       const imageUrls: string[] = [];
@@ -224,10 +185,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
           ?.name || "";
       const adSlug = `${generateSlug(title)}-${Math.random().toString(36).substring(7)}`;
 
-      // ⚡️ VERIFICARE PACKET PROMOȚIONAL:
-      const isPromoFree =
-        selectedPlan!.id === "basic" && selectedDuration.days === 30;
-
+      // Salvăm anunțul direct ca ACTIVE și trimitem cererea
       const resultAd = await createFullAd(
         {
           title,
@@ -238,99 +196,46 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
           phoneNumber,
           location: { county: countyName, city },
           categories: selectedCategories,
-          duration: selectedDuration.days,
-          plan_type: selectedPlan!.id,
-          // Dacă e cel gratis sau forțat acum, intră direct active, altfel pending
-          status: isPromoFree ? "active" : "pending",
+          duration: 30, // fixat la 30 de zile
+          plan_type: "basic",
+          status: "active", // Intre direct ca activ pe platformă
         },
         imageUrls,
       );
+
       if (resultAd) {
-        // ⚡️ REPARAȚIE FORCE-UPDATE ÎN SUPABASE:
-        if (isPromoFree) {
-          console.log("⚡️ Forțăm activarea anunțului gratuit în DB...");
+        // Forțăm starea activă în Supabase
+        await supabase
+          .from("ads")
+          .update({ status: "active" })
+          .eq("id", resultAd.id);
 
-          const { error: updateError } = await supabase
-            .from("ads")
-            .update({ status: "active" })
-            .eq("id", resultAd.id);
-
-          if (updateError) {
-            console.error("Eroare la activarea forțată:", updateError);
-          } else {
-            console.log("✅ Anunțul a fost activat direct în Supabase!");
-          }
-        }
-
-        // ⚡️ NOU: Declanșăm automat trimiterea email-ului instant prin backend-ul tău în acest moment!
+        // ⚡️ ÎNCERCARE TRIMITERE EMAIL DIRECTĂ:
+        // Dacă backend-ul tău are o rută dedicată pentru emailuri gratuite, o apelăm aici.
+        // Dacă nu, va trebui să îmi lași codul de backend (vezi Varianta 2 de mai jos).
         try {
           const apiUrl =
             import.meta.env.VITE_API_URL || "http://localhost:3000/api";
-          await fetch(`${apiUrl}/payment/create-session`, {
+          await fetch(`${apiUrl}/ads/send-confirmation`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              adId: resultAd.id,
-              plan_type: selectedPlan!.id,
-              duration: selectedDuration.days,
-              email: resultAd.email,
-              onlyTriggerEmail: true, // Trimitem un flag către backend dacă e nevoie să știe că doar trimite emailul acum
-            }),
+            body: JSON.stringify({ adId: resultAd.id, email: resultAd.email }),
           });
-          console.log("✉️ Cererea de email trimisă automat cu succes!");
-        } catch (emailErr) {
-          console.error("Eroare la apelul automat de email:", emailErr);
+        } catch (e) {
+          console.log("Rută opțională backend email.");
         }
 
         setCreatedAdData({
           adId: resultAd.id,
-          plan_type: selectedPlan!.id,
+          plan_type: "basic",
           email: resultAd.email,
         });
+
+        // Ducem utilizatorul direct la pagina de mulțumire / donație opțională
         setStep("payment");
       }
     } catch (err: any) {
       setSubmissionError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ⚡️ LOGICĂ FINALIZARE/PLATĂ DIFERENȚIATĂ:
-  const handlePayment = async () => {
-    if (!createdAdData || !selectedPlan) return;
-
-    const isPromoFree =
-      selectedPlan.id === "basic" && selectedDuration.days === 30;
-
-    // Cazul 1: Pachetul este cel gratuit. Sărim complet peste Stripe!
-    if (isPromoFree) {
-      console.log("🎁 Pachet gratuit Starter 30 zile finalizat cu succes.");
-      window.location.href = "/?payment=success";
-      return;
-    }
-
-    // Cazul 2: Pachet normal cu plată. Trimitem utilizatorul securizat la Stripe!
-    setLoading(true);
-    setLoadingMessage("Te conectăm la Stripe...");
-    try {
-      const apiUrl =
-        import.meta.env.VITE_API_URL || "http://localhost:3000/api";
-
-      const response = await fetch(`${apiUrl}/payment/create-session`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          adId: createdAdData.adId,
-          plan_type: selectedPlan.id,
-          duration: selectedDuration.days,
-          email: createdAdData.email,
-        }),
-      });
-      const session = await response.json();
-      if (session.url) window.location.href = session.url;
-    } catch (err) {
-      setSubmissionError("Eroare plată.");
     } finally {
       setLoading(false);
     }
@@ -345,91 +250,14 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
         </div>
       )}
 
-      {step === "plan" && (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <h2 className="text-2xl font-black text-center mb-10">
-            ALEGE PLANUL
-          </h2>
-          <div className="flex justify-center mb-8">
-            <div className="p-1 bg-stone-100 rounded-2xl flex gap-1">
-              {DURATIONS.map((d) => (
-                <button
-                  key={d.days}
-                  type="button"
-                  onClick={() => setSelectedDuration(d)}
-                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${selectedDuration.days === d.days ? "bg-white shadow-sm" : "text-stone-400"}`}
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {PLANS.map((plan) => {
-              const isPromoFree =
-                plan.id === "basic" && selectedDuration.days === 30;
-              const displayPrice = isPromoFree
-                ? 0
-                : Math.ceil(
-                    plan.basePrice * (1 - selectedDuration.discount / 100),
-                  ) * selectedDuration.multiplier;
-
-              return (
-                <div
-                  key={plan.id}
-                  onClick={() => {
-                    setSelectedPlan(plan);
-                    setStep("form");
-                  }}
-                  className="bg-white border-2 p-8 rounded-[2.5rem] cursor-pointer hover:border-emerald-500 transition-all group"
-                >
-                  <h3 className="text-stone-400 font-black text-xs mb-4 uppercase">
-                    {plan.name}
-                  </h3>
-                  <div className="text-4xl font-black mb-6">
-                    {displayPrice}{" "}
-                    <span className="text-sm">
-                      RON{" "}
-                      {isPromoFree && (
-                        <span className="ml-2 px-2 py-0.5 bg-emerald-100 text-emerald-700 font-black rounded-md animate-pulse">
-                          GRATIS
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((f, i) => (
-                      <li
-                        key={i}
-                        className="flex items-center text-xs font-bold text-stone-600"
-                      >
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500 mr-2" />{" "}
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="w-full bg-stone-900 text-white text-center py-4 rounded-2xl text-[10px] font-black uppercase group-hover:bg-emerald-600 transition-colors">
-                    Selectează
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {step === "form" && (
         <form
           onSubmit={handleSubmit}
           className="space-y-6 max-w-2xl mx-auto animate-in fade-in slide-in-from-right-4 duration-500"
         >
-          <button
-            type="button"
-            onClick={() => setStep("plan")}
-            className="flex items-center text-stone-400 font-bold text-[10px] uppercase mb-4"
-          >
-            <ChevronLeft className="w-4 h-4" /> Schimbă Planul Publicitar
-          </button>
+          <h2 className="text-xl font-black text-stone-800 uppercase tracking-wide mb-2">
+            Adaugă un anunț gratuit (30 zile)
+          </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <input
@@ -460,9 +288,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
                     setSelectedCategories((prev) =>
                       prev.filter((c) => c !== cat),
                     );
-                  else if (
-                    selectedCategories.length < selectedPlan!.productCount
-                  )
+                  else if (selectedCategories.length < 1)
                     setSelectedCategories((prev) => [...prev, cat]);
                 }}
                 className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase border-2 transition-all ${selectedCategories.includes(cat) ? "bg-stone-900 text-white border-stone-900" : "bg-white text-stone-400 border-stone-100"}`}
@@ -565,13 +391,8 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
                   </svg>
                 </div>
                 <span className="text-sm font-black text-stone-800">
-                  Apasă aici și adaugă poze la produs
+                  Apasă aici și adaugă poze
                 </span>
-                <span className="text-xs text-stone-400 mt-0.5">
-                  Fă o poză sau alege din galeria telefonului ({previews.length}
-                  /5 poze)
-                </span>
-
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -633,7 +454,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
             disabled={loading || !agreedToTerms}
             className="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase text-xs shadow-xl hover:bg-emerald-700 disabled:opacity-50"
           >
-            Publică Anunțul Acum
+            Publică Anunțul Gratuit
           </button>
         </form>
       )}
@@ -644,48 +465,18 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
             <CheckCircle2 className="w-10 h-10" />
           </div>
           <h2 className="text-2xl font-black mb-2">ANUNȚ PUBLICAT!</h2>
-          <p className="text-xs text-emerald-600 font-bold uppercase tracking-wider mb-4">
-            ✉️ Emailul de confirmare a fost trimis automat!
-          </p>
           <p className="text-stone-500 text-xs mb-8">
-            Anunțul tău este deja salvat și activ pe platformă. Dacă dorești să
-            susții proiectul nostru local și să ne ajuți să creștem comunitatea,
-            poți alege să donezi opțional prin Stripe.
+            Anunțul tău a fost înregistrat cu succes și este acum vizibil pe
+            platformă. Dacă dorești să ne susții munca, poți lăsa o donație
+            opțională.
           </p>
-          <div className="bg-stone-50 p-6 rounded-[2rem] border-2 border-stone-100 mb-10 text-left">
-            <div className="flex justify-between mb-4">
-              <span className="text-[10px] font-black text-stone-400 uppercase">
-                Status Anunț
-              </span>
-              <span className="font-black text-emerald-600 text-xs uppercase bg-emerald-50 px-2 py-0.5 rounded-md">
-                Activ & Confirmat
-              </span>
-            </div>
-            <div className="flex justify-between border-t border-stone-200 pt-4">
-              <span className="text-[10px] font-black text-stone-400 uppercase">
-                Susținere Opțională
-              </span>
-              <span className="text-xl font-black text-stone-900">
-                {totalPrice > 0 ? totalPrice : 10} RON
-              </span>
-            </div>
-          </div>
           <div className="flex flex-col gap-3">
             <button
               type="button"
-              onClick={handlePayment}
-              className="w-full bg-emerald-600 text-white py-5 rounded-[1.5rem] font-black uppercase text-xs hover:bg-emerald-700 shadow-xl flex items-center justify-center gap-2"
+              onClick={() => (window.location.href = "/?payment=success")}
+              className="w-full bg-emerald-600 text-white py-5 rounded-[1.5rem] font-black uppercase text-xs hover:bg-emerald-700 shadow-xl"
             >
-              Donează / Susține cu Stripe <ChevronRight className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                window.location.href = "/?payment=success";
-              }}
-              className="w-full bg-white text-stone-400 border py-4 rounded-[1.5rem] font-bold uppercase text-[10px] hover:bg-stone-50 transition-all"
-            >
-              Poate mai târziu, mergi la prima pagină
+              Finalizează și mergi la prima pagină
             </button>
           </div>
         </div>
