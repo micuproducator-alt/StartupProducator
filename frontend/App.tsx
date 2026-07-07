@@ -565,10 +565,10 @@ const App: React.FC = () => {
                   <br />
                   {/* REPARAT: Adăugat tagul <a> deschis corect pentru mailto */}
                   <a
-                    href="mailto:suport@locallio.ro"
+                    href="mailto:micuproducator@gmail.com"
                     className="text-emerald-600 hover:underline font-bold"
                   >
-                    suport@locallio.ro
+                    micuproducator@gmail.com
                   </a>
                 </p>
                 <p className="text-[9px] font-bold text-stone-300 uppercase tracking-widest leading-loose">
