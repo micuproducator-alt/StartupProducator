@@ -2,7 +2,14 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { PRODUCT_CATEGORIES } from "../types";
 import { generateSlug } from "../utils/slug";
 import { createFullAd } from "../services/adsService";
-import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  Loader2,
+  ImageIcon,
+  CheckCircle2,
+  AlertCircle,
+  ChevronRight,
+  ChevronLeft,
+} from "lucide-react";
 import { supabase } from "../lib/supabase";
 import imageCompression from "browser-image-compression";
 
@@ -22,7 +29,7 @@ interface Plan {
   features: string[];
 }
 
-// --- CONSTANTE ORIGINALE ---
+// --- CONSTANTE ---
 const PLANS: Plan[] = [
   {
     id: "basic",
@@ -35,23 +42,47 @@ const PLANS: Plan[] = [
       "Suport Standard",
     ],
   },
+  {
+    id: "standard",
+    name: "Grower",
+    productCount: 3,
+    basePrice: 20,
+    features: [
+      "Vinde până la 3 produse",
+      "Vizibil în 3 Categorii",
+      "Recomandat",
+    ],
+  },
+  {
+    id: "premium",
+    name: "Pro Market",
+    productCount: 5,
+    basePrice: 30,
+    features: [
+      "Vinde până la 5 produse",
+      "Vizibil în 5 Categorii",
+      "Suport Prioritar",
+    ],
+  },
 ];
 
-const DURATIONS = [{ days: 30, multiplier: 1, discount: 0, label: "30 Zile" }];
+const DURATIONS = [
+  { days: 30, multiplier: 1, discount: 0, label: "30 Zile" },
+  { days: 90, multiplier: 3, discount: 5, label: "90 Zile" },
+  { days: 180, multiplier: 6, discount: 10, label: "180 Zile" },
+  { days: 360, multiplier: 12, discount: 15, label: "360 Zile" },
+];
 
-export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
-  // Pornim direct de la pasul "form", eliminând vizual pașii de planuri și plăți
+export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
   const [step, setStep] = useState<"plan" | "form" | "payment" | "success">(
-    "form",
+    "plan",
   );
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
   const [submissionError, setSubmissionError] = useState<string | null>(null);
 
-  // Preselectăm pachetul de bază gratuit (Basic + 30 Zile)
-  const [selectedPlan] = useState<Plan | null>(PLANS[0]);
-  const [selectedDuration] = useState(DURATIONS[0]);
-
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [selectedDuration, setSelectedDuration] = useState(DURATIONS[0]);
   const [title, setTitle] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [price, setPrice] = useState("");
@@ -80,10 +111,18 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Forțat la 0 RON în concordanță cu logica ta inițială
+  // ⚡️ CALCUL INTERFAȚĂ: Forțăm prețul la 0 RON dacă e Basic la 30 de zile
   const totalPrice = useMemo(() => {
-    return 0;
-  }, []);
+    if (!selectedPlan) return 0;
+    if (selectedPlan.id === "basic" && selectedDuration.days === 30) {
+      return 0;
+    }
+    const unitDiscount = Math.ceil(
+      selectedPlan.basePrice * (selectedDuration.discount / 100),
+    );
+    const discountedUnitPrice = selectedPlan.basePrice - unitDiscount;
+    return discountedUnitPrice * selectedDuration.multiplier;
+  }, [selectedPlan, selectedDuration]);
 
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
@@ -183,6 +222,10 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
           ?.name || "";
       const adSlug = `${generateSlug(title)}-${Math.random().toString(36).substring(7)}`;
 
+      // ⚡️ VERIFICARE PACKET PROMOȚIONAL:
+      const isPromoFree =
+        selectedPlan!.id === "basic" && selectedDuration.days === 30;
+
       const resultAd = await createFullAd(
         {
           title,
@@ -195,20 +238,27 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
           categories: selectedCategories,
           duration: selectedDuration.days,
           plan_type: selectedPlan!.id,
-          status: "active", // Forțat direct activ
+          // Dacă e cel gratis intră "active" direct în DB, altfel rămâne "pending" până la plată!
+          status: isPromoFree ? "active" : "pending",
         },
         imageUrls,
       );
-
       if (resultAd) {
-        console.log("⚡️ Forțăm activarea anunțului gratuit în DB...");
-        const { error: updateError } = await supabase
-          .from("ads")
-          .update({ status: "active" })
-          .eq("id", resultAd.id);
+        // ⚡️ REPARAȚIE FORCE-UPDATE ÎN SUPABASE:
+        // Dacă e pachetul moca, dăm o linie directă în DB și îi schimbăm statusul în "active" acum!
+        if (isPromoFree) {
+          console.log("⚡️ Forțăm activarea anunțului gratuit în DB...");
 
-        if (updateError) {
-          console.error("Eroare la activarea forțată:", updateError);
+          const { error: updateError } = await supabase
+            .from("ads") // Schimbă cu numele tabelului tău dacă nu se numește "ads" (ex: "listings" sau "anunturi")
+            .update({ status: "active" })
+            .eq("id", resultAd.id);
+
+          if (updateError) {
+            console.error("Eroare la activarea forțată:", updateError);
+          } else {
+            console.log("✅ Anunțul a fost activat direct în Supabase!");
+          }
         }
 
         setCreatedAdData({
@@ -216,12 +266,50 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
           plan_type: selectedPlan!.id,
           email: resultAd.email,
         });
-
-        // Schimbăm starea în succes instant
-        setStep("success");
+        setStep("payment");
       }
     } catch (err: any) {
       setSubmissionError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ⚡️ LOGICĂ FINALIZARE/PLATĂ DIFERENȚIATĂ:
+  const handlePayment = async () => {
+    if (!createdAdData || !selectedPlan) return;
+
+    const isPromoFree =
+      selectedPlan.id === "basic" && selectedDuration.days === 30;
+
+    // Cazul 1: Pachetul este cel gratuit. Sărim complet peste Stripe!
+    if (isPromoFree) {
+      console.log("🎁 Pachet gratuit Starter 30 zile finalizat cu succes.");
+      window.location.href = "/?payment=success";
+      return;
+    }
+
+    // Cazul 2: Pachet normal cu plată. Trimitem utilizatorul securizat la Stripe!
+    setLoading(true);
+    setLoadingMessage("Te conectăm la Stripe...");
+    try {
+      const apiUrl =
+        import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+
+      const response = await fetch(`${apiUrl}/payment/create-session`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          adId: createdAdData.adId,
+          plan_type: selectedPlan.id,
+          duration: selectedDuration.days,
+          email: createdAdData.email,
+        }),
+      });
+      const session = await response.json();
+      if (session.url) window.location.href = session.url;
+    } catch (err) {
+      setSubmissionError("Eroare plată.");
     } finally {
       setLoading(false);
     }
@@ -236,20 +324,92 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
         </div>
       )}
 
+      {step === "plan" && (
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <h2 className="text-2xl font-black text-center mb-10">
+            ALEGE PLANUL
+          </h2>
+          <div className="flex justify-center mb-8">
+            <div className="p-1 bg-stone-100 rounded-2xl flex gap-1">
+              {DURATIONS.map((d) => (
+                <button
+                  key={d.days}
+                  type="button"
+                  onClick={() => setSelectedDuration(d)}
+                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${selectedDuration.days === d.days ? "bg-white shadow-sm" : "text-stone-400"}`}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {PLANS.map((plan) => {
+              // Schimbăm dinamic prețul pe ecran ca să arate promoția curentă
+              const isPromoFree =
+                plan.id === "basic" && selectedDuration.days === 30;
+              const displayPrice = isPromoFree
+                ? 0
+                : Math.ceil(
+                    plan.basePrice * (1 - selectedDuration.discount / 100),
+                  ) * selectedDuration.multiplier;
+
+              return (
+                <div
+                  key={plan.id}
+                  onClick={() => {
+                    setSelectedPlan(plan);
+                    setStep("form");
+                  }}
+                  className="bg-white border-2 p-8 rounded-[2.5rem] cursor-pointer hover:border-emerald-500 transition-all group"
+                >
+                  <h3 className="text-stone-400 font-black text-xs mb-4 uppercase">
+                    {plan.name}
+                  </h3>
+                  <div className="text-4xl font-black mb-6">
+                    {displayPrice}{" "}
+                    <span className="text-sm">
+                      RON{" "}
+                      {isPromoFree && (
+                        <span className="ml-2 px-2 py-0.5 bg-emerald-100 text-emerald-700 font-black rounded-md animate-pulse">
+                          GRATIS
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <ul className="space-y-3 mb-8">
+                    {plan.features.map((f, i) => (
+                      <li
+                        key={i}
+                        className="flex items-center text-xs font-bold text-stone-600"
+                      >
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500 mr-2" />{" "}
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="w-full bg-stone-900 text-white text-center py-4 rounded-2xl text-[10px] font-black uppercase group-hover:bg-emerald-600 transition-colors">
+                    Selectează
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {step === "form" && (
         <form
           onSubmit={handleSubmit}
           className="space-y-6 max-w-2xl mx-auto animate-in fade-in slide-in-from-right-4 duration-500"
         >
-          <div className="text-center md:text-left mb-2">
-            <h2 className="text-2xl font-black text-stone-900 tracking-tight">
-              Publică un Anunț Nou
-            </h2>
-            <p className="text-xs text-stone-400 mt-1">
-              Anunțul tău va fi activ și vizibil pe hartă timp de 30 de zile,
-              complet gratuit.
-            </p>
-          </div>
+          <button
+            type="button"
+            onClick={() => setStep("plan")}
+            className="flex items-center text-stone-400 font-bold text-[10px] uppercase mb-4"
+          >
+            <ChevronLeft className="w-4 h-4" /> Înapoi
+          </button>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <input
@@ -257,7 +417,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="md:col-span-2 bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none focus:border-emerald-500 transition-all"
+              className="md:col-span-2 bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none focus:border-emerald-500"
               placeholder="Titlu"
             />
             <input
@@ -265,7 +425,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
               required
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              className="bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none focus:border-emerald-500 transition-all"
+              className="bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none focus:border-emerald-500"
               placeholder="Preț"
             />
           </div>
@@ -280,10 +440,12 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
                     setSelectedCategories((prev) =>
                       prev.filter((c) => c !== cat),
                     );
-                  else if (selectedCategories.length < 3)
+                  else if (
+                    selectedCategories.length < selectedPlan!.productCount
+                  )
                     setSelectedCategories((prev) => [...prev, cat]);
                 }}
-                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase border-2 transition-all cursor-pointer ${selectedCategories.includes(cat) ? "bg-stone-900 text-white border-stone-900 hover:bg-stone-800" : "bg-white text-stone-400 border-stone-100 hover:border-stone-200"}`}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase border-2 transition-all ${selectedCategories.includes(cat) ? "bg-stone-900 text-white border-stone-900" : "bg-white text-stone-400 border-stone-100"}`}
               >
                 {cat}
               </button>
@@ -294,7 +456,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
             <select
               value={selectedCountyCode}
               onChange={(e) => setSelectedCountyCode(e.target.value)}
-              className="bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none cursor-pointer focus:border-emerald-500 transition-all"
+              className="bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none"
               required
             >
               <option value="">Județ</option>
@@ -308,10 +470,10 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
               value={city}
               onChange={(e) => setCity(e.target.value)}
               disabled={!selectedCountyCode || loadingGeo}
-              className="bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus:border-emerald-500 transition-all"
+              className="bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none disabled:opacity-50"
               required
             >
-              <option value="">{loadingGeo ? "Se încarcă..." : "Oraș"}</option>
+              <option value="">{loadingGeo ? "..." : "Oraș"}</option>
               {availableCities.map((c) => (
                 <option key={c.id} value={c.name}>
                   {c.name}
@@ -325,7 +487,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full bg-stone-50 border-2 p-4 rounded-2xl outline-none focus:border-emerald-500 transition-all"
+            className="w-full bg-stone-50 border-2 p-4 rounded-2xl outline-none focus:border-emerald-500"
             placeholder="Descriere"
           />
 
@@ -348,7 +510,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
                         setImages(images.filter((_, i) => i !== idx));
                         setPreviews(previews.filter((_, i) => i !== idx));
                       }}
-                      className="absolute inset-0 bg-rose-600/70 text-white opacity-0 hover:opacity-100 transition-opacity text-[8px] font-black uppercase cursor-pointer"
+                      className="absolute inset-0 bg-rose-600/70 text-white opacity-0 hover:opacity-100 transition-opacity text-[8px] font-black uppercase"
                     >
                       Șterge
                     </button>
@@ -358,7 +520,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
             )}
 
             {previews.length < 5 && (
-              <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-stone-300 rounded-2xl bg-stone-50 cursor-pointer hover:bg-stone-100 hover:border-stone-400 p-4 text-center transition-all">
+              <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-stone-300 rounded-2xl bg-stone-50 cursor-pointer hover:bg-stone-100 p-4 text-center transition-all">
                 <div className="bg-emerald-100 p-3 rounded-full mb-2">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -389,6 +551,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
                   Fă o poză sau alege din galeria telefonului ({previews.length}
                   /5 poze)
                 </span>
+
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -407,7 +570,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none focus:border-emerald-500 transition-all"
+              className="bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none"
               placeholder="Email"
             />
             <input
@@ -417,7 +580,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
               onChange={(e) =>
                 setPhoneNumber(e.target.value.replace(/\D/g, ""))
               }
-              className="bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none focus:border-emerald-500 transition-all"
+              className="bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none"
               placeholder="Telefon"
             />
           </div>
@@ -428,12 +591,12 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
               id="agreed"
               checked={agreedToTerms}
               onChange={(e) => setAgreedToTerms(e.target.checked)}
-              className="w-5 h-5 mt-1 accent-emerald-600 cursor-pointer"
+              className="w-5 h-5 mt-1 accent-emerald-600"
               required
             />
             <label
               htmlFor="agreed"
-              className="text-[11px] text-emerald-900 font-medium cursor-pointer select-none"
+              className="text-[11px] text-emerald-900 font-medium"
             >
               Sunt de acord cu termenii și condițiile.
             </label>
@@ -448,51 +611,52 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
           <button
             type="submit"
             disabled={loading || !agreedToTerms}
-            className="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase text-xs shadow-xl hover:bg-emerald-700 active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase text-xs shadow-xl hover:bg-emerald-700 disabled:opacity-50"
           >
             Publică • {totalPrice} RON
           </button>
         </form>
       )}
 
-      {/* --- RECONSTRUCȚIE ECRAN SUCCES (Declanșează redirecționarea nativă pentru mail) --- */}
-      {step === "success" && (
-        <div className="text-center animate-in zoom-in duration-500 max-w-md mx-auto py-10 flex flex-col items-center space-y-6">
-          <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center shadow-inner">
+      {step === "payment" && (
+        <div className="text-center animate-in zoom-in duration-500 max-w-md mx-auto py-10">
+          <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 className="w-10 h-10" />
           </div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-black text-stone-900 tracking-tight">
-              ANUNȚ SALVAT!
-            </h2>
-            <p className="text-sm text-stone-500 max-w-sm mx-auto">
-              Vă mulțumim că ați ales Locallio! Pentru a confirma înregistrarea
-              și a trimite emailul de confirmare, finalizează procesul.
-            </p>
+          <h2 className="text-2xl font-black mb-4">ANUNȚ SALVAT!</h2>
+          <p className="text-stone-500 mb-10">
+            {selectedPlan?.id === "basic" && selectedDuration.days === 30
+              ? "Apasă pe butonul de mai jos pentru a-ți publica anunțul gratuit!"
+              : "Finalizează plata securizată cu Stripe pentru a activa anunțul."}
+          </p>
+          <div className="bg-stone-50 p-6 rounded-[2rem] border-2 border-stone-100 mb-10 text-left">
+            <div className="flex justify-between mb-4">
+              <span className="text-[10px] font-black text-stone-400 uppercase">
+                Pachet
+              </span>
+              <span className="font-black text-stone-900">
+                {selectedPlan?.name} ({selectedDuration.label})
+              </span>
+            </div>
+            <div className="flex justify-between border-t border-stone-200 pt-4">
+              <span className="text-[10px] font-black text-stone-400 uppercase">
+                Total
+              </span>
+              <span className="text-2xl font-black text-stone-900">
+                {totalPrice} RON
+              </span>
+            </div>
           </div>
-
-          <div className="w-full flex flex-col gap-2 pt-2">
-            {/* Butonul principal care simulează exact fluxul vechi ce genera email-ul prin query param */}
-            <button
-              type="button"
-              onClick={() => {
-                window.location.href = "/?payment=success";
-              }}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase py-4 rounded-2xl text-center cursor-pointer transition-all active:scale-[0.99] shadow-md hover:shadow-lg flex items-center justify-center gap-2"
-            >
-              Confirmă & Trimite Email de Confirmare
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                if (onClose) onClose();
-              }}
-              className="w-full bg-stone-100 text-stone-600 text-xs font-bold py-4 rounded-2xl cursor-pointer hover:bg-stone-200 hover:text-stone-800 transition-all duration-200 active:scale-[0.99]"
-            >
-              Poate mai târziu, închide modalul
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handlePayment}
+            className="w-full bg-emerald-600 text-white py-6 rounded-[1.5rem] font-black uppercase text-xs hover:bg-emerald-700 shadow-xl flex items-center justify-center gap-2"
+          >
+            {selectedPlan?.id === "basic" && selectedDuration.days === 30
+              ? "Publică Anunțul Gratuit"
+              : "Plătește cu Stripe"}{" "}
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       )}
     </div>
