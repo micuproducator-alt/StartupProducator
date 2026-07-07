@@ -442,7 +442,7 @@ const App: React.FC = () => {
                   onClick={() => setIsCreateModalOpen(true)}
                   className="h-[40px] px-4 sm:px-6 text-[11px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest rounded-xl shadow-sm text-white bg-stone-900 hover:bg-stone-800 transition-all active:scale-95 flex items-center justify-center"
                 >
-                  <span>Adaugă</span>
+                  <span>Publică Anunț</span>
                 </button>
               </div>
             </div>

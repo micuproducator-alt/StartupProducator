@@ -9,6 +9,7 @@ import {
   AlertCircle,
   ChevronRight,
   ChevronLeft,
+  Coffee, // Importat pentru secțiunea de donații
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import imageCompression from "browser-image-compression";
@@ -29,7 +30,8 @@ interface Plan {
   features: string[];
 }
 
-// --- CONSTANTE ---
+// --- CONSTANTE (COMENTATE ACUM, DAR PĂSTRATE PENTRU VIITOR) ---
+/*
 const PLANS: Plan[] = [
   {
     id: "basic",
@@ -72,47 +74,79 @@ const DURATIONS = [
   { days: 180, multiplier: 6, discount: 10, label: "180 Zile" },
   { days: 360, multiplier: 12, discount: 15, label: "360 Zile" },
 ];
+*/
 
-export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
+// Folosim un plan și o durată implicite de tip structură similară ca să nu alterăm metodele de dedesubt
+const DEFAULT_PLAN: Plan = {
+  id: "basic",
+  name: "Starter",
+  productCount: 1,
+  basePrice: 0,
+  features: [],
+};
+const DEFAULT_DURATION = {
+  days: 30,
+  multiplier: 1,
+  discount: 0,
+  label: "30 Zile",
+};
+
+export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate, onClose }) => {
+  // ⚡️ MODIFICARE: Pornim direct de la pasul "form"
   const [step, setStep] = useState<"plan" | "form" | "payment" | "success">(
-    "plan",
+    "form",
   );
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
   const [submissionError, setSubmissionError] = useState<string | null>(null);
 
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const [selectedDuration, setSelectedDuration] = useState(DURATIONS[0]);
-  const [title, setTitle] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [price, setPrice] = useState("");
-  const [description, setDescription] = useState("");
-  const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [images, setImages] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  // Setăm automat planul gratuit pe stările interne
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(DEFAULT_PLAN);
+  const [selectedDuration, setSelectedDuration] = useState(DEFAULT_DURATION);
 
-  const [counties, setCounties] = useState<
-    { county_code: number; name: string }[]
-  >([]);
-  const [availableCities, setAvailableCities] = useState<
-    { id: number; name: string }[]
-  >([]);
-  const [selectedCountyCode, setSelectedCountyCode] = useState("");
-  const [city, setCity] = useState("");
-  const [loadingGeo, setLoadingGeo] = useState(false);
+  const title = useState("");
+  const setTitle = title[1];
+  const selectedCategories = useState<string[]>([]);
+  const setSelectedCategories = selectedCategories[1];
+  const price = useState("");
+  const setPrice = price[1];
+  const description = useState("");
+  const setDescription = description[1];
+  const email = useState("");
+  const setEmail = email[1];
+  const phoneNumber = useState("");
+  const setPhoneNumber = phoneNumber[1];
+  const images = useState<File[]>([]);
+  const setImages = images[1];
+  const previews = useState<string[]>([]);
+  const setPreviews = previews[1];
+  const agreedToTerms = useState(false);
+  const setAgreedToTerms = agreedToTerms[1];
 
-  const [createdAdData, setCreatedAdData] = useState<{
+  const counties = useState<{ county_code: number; name: string }[]>([]);
+  const setCounties = counties[1];
+  const availableCities = useState<{ id: number; name: string }[]>([]);
+  const setAvailableCities = availableCities[1];
+  const selectedCountyCode = useState("");
+  const setSelectedCountyCode = selectedCountyCode[1];
+  const city = useState("");
+  const setCity = city[1];
+  const loadingGeo = useState(false);
+  const setLoadingGeo = loadingGeo[1];
+
+  const createdAdData = useState<{
     adId: string;
     plan_type: string;
     email: string;
   } | null>(null);
+  const setCreatedAdData = createdAdData[1];
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ⚡️ CALCUL INTERFAȚĂ: Forțăm prețul la 0 RON dacă e Basic la 30 de zile
+  // --- LOGICĂ CALCUL PREȚ (COMENTATĂ / SETATĂ LA 0) ---
   const totalPrice = useMemo(() => {
+    return 0; // Forțat complet gratuit acum
+    /*
     if (!selectedPlan) return 0;
     if (selectedPlan.id === "basic" && selectedDuration.days === 30) {
       return 0;
@@ -122,7 +156,8 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
     );
     const discountedUnitPrice = selectedPlan.basePrice - unitDiscount;
     return discountedUnitPrice * selectedDuration.multiplier;
-  }, [selectedPlan, selectedDuration]);
+    */
+  }, []);
 
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
@@ -133,15 +168,15 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
         setCounties(data);
       })
       .catch((err) => console.error(err));
-  }, []);
+  }, [setCounties]);
 
   useEffect(() => {
-    if (selectedCountyCode) {
+    if (selectedCountyCode[0]) {
       setLoadingGeo(true);
       const apiUrl =
         import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
-      fetch(`${apiUrl}/geo/locations/${selectedCountyCode}`)
+      fetch(`${apiUrl}/geo/locations/${selectedCountyCode[0]}`)
         .then((res) => res.json())
         .then((data) => {
           setAvailableCities(data);
@@ -149,14 +184,14 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
         })
         .finally(() => setLoadingGeo(false));
     }
-  }, [selectedCountyCode]);
+  }, [selectedCountyCode, setAvailableCities, setCity, setLoadingGeo]);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files) as File[];
       const validFiles = filesArray.filter((f) => f.type.startsWith("image/"));
 
-      if (images.length + validFiles.length > 5) {
+      if (images[0].length + validFiles.length > 5) {
         alert("Maxim 5 fotografii.");
         return;
       }
@@ -199,7 +234,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
 
     try {
       const imageUrls: string[] = [];
-      for (const img of images) {
+      for (const img of images[0]) {
         const fileName = `${Math.random().toString(36).substring(7)}-${Date.now()}.${img.name.split(".").pop()}`;
 
         const { error: uploadError } = await supabase.storage
@@ -218,39 +253,35 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
         if (data?.publicUrl) imageUrls.push(data.publicUrl);
       }
       const countyName =
-        counties.find((c) => c.county_code === parseInt(selectedCountyCode))
-          ?.name || "";
-      const adSlug = `${generateSlug(title)}-${Math.random().toString(36).substring(7)}`;
+        counties[0].find(
+          (c) => c.county_code === parseInt(selectedCountyCode[0]),
+        )?.name || "";
+      const adSlug = `${generateSlug(title[0])}-${Math.random().toString(36).substring(7)}`;
 
-      // ⚡️ VERIFICARE PACKET PROMOȚIONAL:
-      const isPromoFree =
-        selectedPlan!.id === "basic" && selectedDuration.days === 30;
+      // Pachetul este forțat ca fiind gratuit (basic + 30 zile)
+      const isPromoFree = true;
 
       const resultAd = await createFullAd(
         {
-          title,
+          title: title[0],
           slug: adSlug,
-          description,
-          price: parseFloat(price),
-          email,
-          phoneNumber,
-          location: { county: countyName, city },
-          categories: selectedCategories,
+          description: description[0],
+          price: parseFloat(price[0]),
+          email: email[0],
+          phoneNumber: phoneNumber[0],
+          location: { county: countyName, city: city[0] },
+          categories: selectedCategories[0],
           duration: selectedDuration.days,
           plan_type: selectedPlan!.id,
-          // Dacă e cel gratis intră "active" direct în DB, altfel rămâne "pending" până la plată!
-          status: isPromoFree ? "active" : "pending",
+          status: "active", // Se activează direct în DB fiind gratuit
         },
         imageUrls,
       );
       if (resultAd) {
-        // ⚡️ REPARAȚIE FORCE-UPDATE ÎN SUPABASE:
-        // Dacă e pachetul moca, dăm o linie directă în DB și îi schimbăm statusul în "active" acum!
         if (isPromoFree) {
           console.log("⚡️ Forțăm activarea anunțului gratuit în DB...");
-
           const { error: updateError } = await supabase
-            .from("ads") // Schimbă cu numele tabelului tău dacă nu se numește "ads" (ex: "listings" sau "anunturi")
+            .from("ads")
             .update({ status: "active" })
             .eq("id", resultAd.id);
 
@@ -266,7 +297,9 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
           plan_type: selectedPlan!.id,
           email: resultAd.email,
         });
-        setStep("payment");
+
+        // ⚡️ MODIFICARE: În loc de pasul "payment" (Stripe), trimitem utilizatorul direct la ecranul de succes/donație!
+        setStep("success");
       }
     } catch (err: any) {
       setSubmissionError(err.message);
@@ -275,27 +308,19 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
     }
   };
 
-  // ⚡️ LOGICĂ FINALIZARE/PLATĂ DIFERENȚIATĂ:
+  // --- LOGICĂ PLATĂ SECRETA STRIPE (COMENTATĂ ACUM) ---
   const handlePayment = async () => {
+    /*
     if (!createdAdData || !selectedPlan) return;
-
-    const isPromoFree =
-      selectedPlan.id === "basic" && selectedDuration.days === 30;
-
-    // Cazul 1: Pachetul este cel gratuit. Sărim complet peste Stripe!
+    const isPromoFree = selectedPlan.id === "basic" && selectedDuration.days === 30;
     if (isPromoFree) {
-      console.log("🎁 Pachet gratuit Starter 30 zile finalizat cu succes.");
       window.location.href = "/?payment=success";
       return;
     }
-
-    // Cazul 2: Pachet normal cu plată. Trimitem utilizatorul securizat la Stripe!
     setLoading(true);
     setLoadingMessage("Te conectăm la Stripe...");
     try {
-      const apiUrl =
-        import.meta.env.VITE_API_URL || "http://localhost:3000/api";
-
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
       const response = await fetch(`${apiUrl}/payment/create-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -313,6 +338,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
     } finally {
       setLoading(false);
     }
+    */
   };
 
   return (
@@ -324,98 +350,44 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
         </div>
       )}
 
-      {step === "plan" && (
+      {/* --- PASUL PLAN (COMENTAT COMPLET) --- */}
+      {/* {step === "plan" && (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <h2 className="text-2xl font-black text-center mb-10">
-            ALEGE PLANUL
-          </h2>
-          <div className="flex justify-center mb-8">
-            <div className="p-1 bg-stone-100 rounded-2xl flex gap-1">
-              {DURATIONS.map((d) => (
-                <button
-                  key={d.days}
-                  type="button"
-                  onClick={() => setSelectedDuration(d)}
-                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${selectedDuration.days === d.days ? "bg-white shadow-sm" : "text-stone-400"}`}
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {PLANS.map((plan) => {
-              // Schimbăm dinamic prețul pe ecran ca să arate promoția curentă
-              const isPromoFree =
-                plan.id === "basic" && selectedDuration.days === 30;
-              const displayPrice = isPromoFree
-                ? 0
-                : Math.ceil(
-                    plan.basePrice * (1 - selectedDuration.discount / 100),
-                  ) * selectedDuration.multiplier;
-
-              return (
-                <div
-                  key={plan.id}
-                  onClick={() => {
-                    setSelectedPlan(plan);
-                    setStep("form");
-                  }}
-                  className="bg-white border-2 p-8 rounded-[2.5rem] cursor-pointer hover:border-emerald-500 transition-all group"
-                >
-                  <h3 className="text-stone-400 font-black text-xs mb-4 uppercase">
-                    {plan.name}
-                  </h3>
-                  <div className="text-4xl font-black mb-6">
-                    {displayPrice}{" "}
-                    <span className="text-sm">
-                      RON{" "}
-                      {isPromoFree && (
-                        <span className="ml-2 px-2 py-0.5 bg-emerald-100 text-emerald-700 font-black rounded-md animate-pulse">
-                          GRATIS
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((f, i) => (
-                      <li
-                        key={i}
-                        className="flex items-center text-xs font-bold text-stone-600"
-                      >
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500 mr-2" />{" "}
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="w-full bg-stone-900 text-white text-center py-4 rounded-2xl text-[10px] font-black uppercase group-hover:bg-emerald-600 transition-colors">
-                    Selectează
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          ... (toată secțiunea anterioară de planuri) ...
         </div>
-      )}
+      )} 
+      */}
 
       {step === "form" && (
         <form
           onSubmit={handleSubmit}
           className="space-y-6 max-w-2xl mx-auto animate-in fade-in slide-in-from-right-4 duration-500"
         >
-          <button
+          {/* Butonul Înapoi spre planuri a fost comentat deoarece intrăm direct pe formular */}
+          {/* <button
             type="button"
             onClick={() => setStep("plan")}
             className="flex items-center text-stone-400 font-bold text-[10px] uppercase mb-4"
           >
             <ChevronLeft className="w-4 h-4" /> Înapoi
-          </button>
+          </button> 
+          */}
+
+          <div className="text-center md:text-left mb-2">
+            <h2 className="text-2xl font-black text-stone-900 tracking-tight">
+              Publică un Anunț Nou
+            </h2>
+            <p className="text-xs text-stone-400 mt-1">
+              Anunțul tău va fi activ și vizibil pe hartă timp de 30 de zile,
+              complet gratuit.
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <input
               type="text"
               required
-              value={title}
+              value={title[0]}
               onChange={(e) => setTitle(e.target.value)}
               className="md:col-span-2 bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none focus:border-emerald-500"
               placeholder="Titlu"
@@ -423,7 +395,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
             <input
               type="number"
               required
-              value={price}
+              value={price[0]}
               onChange={(e) => setPrice(e.target.value)}
               className="bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none focus:border-emerald-500"
               placeholder="Preț"
@@ -436,16 +408,16 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
                 key={cat}
                 type="button"
                 onClick={() => {
-                  if (selectedCategories.includes(cat))
+                  if (selectedCategories[0].includes(cat))
                     setSelectedCategories((prev) =>
                       prev.filter((c) => c !== cat),
                     );
                   else if (
-                    selectedCategories.length < selectedPlan!.productCount
+                    selectedCategories[0].length < 3 // Permitem o selecție flexibilă în mod implicit
                   )
                     setSelectedCategories((prev) => [...prev, cat]);
                 }}
-                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase border-2 transition-all ${selectedCategories.includes(cat) ? "bg-stone-900 text-white border-stone-900" : "bg-white text-stone-400 border-stone-100"}`}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase border-2 transition-all ${selectedCategories[0].includes(cat) ? "bg-stone-900 text-white border-stone-900" : "bg-white text-stone-400 border-stone-100"}`}
               >
                 {cat}
               </button>
@@ -454,27 +426,27 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
 
           <div className="grid grid-cols-2 gap-4">
             <select
-              value={selectedCountyCode}
+              value={selectedCountyCode[0]}
               onChange={(e) => setSelectedCountyCode(e.target.value)}
               className="bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none"
               required
             >
               <option value="">Județ</option>
-              {counties.map((c) => (
+              {counties[0].map((c) => (
                 <option key={c.county_code} value={c.county_code}>
                   {c.name}
                 </option>
               ))}
             </select>
             <select
-              value={city}
+              value={city[0]}
               onChange={(e) => setCity(e.target.value)}
-              disabled={!selectedCountyCode || loadingGeo}
+              disabled={!selectedCountyCode[0] || loadingGeo[0]}
               className="bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none disabled:opacity-50"
               required
             >
-              <option value="">{loadingGeo ? "..." : "Oraș"}</option>
-              {availableCities.map((c) => (
+              <option value="">{loadingGeo[0] ? "..." : "Oraș"}</option>
+              {availableCities[0].map((c) => (
                 <option key={c.id} value={c.name}>
                   {c.name}
                 </option>
@@ -485,16 +457,16 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
           <textarea
             required
             rows={4}
-            value={description}
+            value={description[0]}
             onChange={(e) => setDescription(e.target.value)}
             className="w-full bg-stone-50 border-2 p-4 rounded-2xl outline-none focus:border-emerald-500"
             placeholder="Descriere"
           />
 
           <div className="space-y-4">
-            {previews.length > 0 && (
+            {previews[0].length > 0 && (
               <div className="grid grid-cols-5 gap-2">
-                {previews.map((src, idx) => (
+                {previews[0].map((src, idx) => (
                   <div
                     key={idx}
                     className="relative aspect-square rounded-xl overflow-hidden border-2 border-stone-100"
@@ -507,8 +479,8 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
                     <button
                       type="button"
                       onClick={() => {
-                        setImages(images.filter((_, i) => i !== idx));
-                        setPreviews(previews.filter((_, i) => i !== idx));
+                        setImages(images[0].filter((_, i) => i !== idx));
+                        setPreviews(previews[0].filter((_, i) => i !== idx));
                       }}
                       className="absolute inset-0 bg-rose-600/70 text-white opacity-0 hover:opacity-100 transition-opacity text-[8px] font-black uppercase"
                     >
@@ -519,7 +491,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
               </div>
             )}
 
-            {previews.length < 5 && (
+            {previews[0].length < 5 && (
               <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-stone-300 rounded-2xl bg-stone-50 cursor-pointer hover:bg-stone-100 p-4 text-center transition-all">
                 <div className="bg-emerald-100 p-3 rounded-full mb-2">
                   <svg
@@ -548,8 +520,8 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
                   Apasă aici și adaugă poze la produs
                 </span>
                 <span className="text-xs text-stone-400 mt-0.5">
-                  Fă o poză sau alege din galeria telefonului ({previews.length}
-                  /5 poze)
+                  Fă o poză sau alege din galeria telefonului (
+                  {previews[0].length}/5 poze)
                 </span>
 
                 <input
@@ -568,7 +540,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
             <input
               type="email"
               required
-              value={email}
+              value={email[0]}
               onChange={(e) => setEmail(e.target.value)}
               className="bg-stone-50 border-2 p-4 rounded-2xl font-bold outline-none"
               placeholder="Email"
@@ -576,7 +548,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
             <input
               type="tel"
               required
-              value={phoneNumber}
+              value={phoneNumber[0]}
               onChange={(e) =>
                 setPhoneNumber(e.target.value.replace(/\D/g, ""))
               }
@@ -589,7 +561,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
             <input
               type="checkbox"
               id="agreed"
-              checked={agreedToTerms}
+              checked={agreedToTerms[0]}
               onChange={(e) => setAgreedToTerms(e.target.checked)}
               className="w-5 h-5 mt-1 accent-emerald-600"
               required
@@ -610,53 +582,66 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
 
           <button
             type="submit"
-            disabled={loading || !agreedToTerms}
+            disabled={loading || !agreedToTerms[0]}
             className="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase text-xs shadow-xl hover:bg-emerald-700 disabled:opacity-50"
           >
-            Publică • {totalPrice} RON
+            Publică Anunțul Gratuit • 0 RON
           </button>
         </form>
       )}
 
-      {step === "payment" && (
-        <div className="text-center animate-in zoom-in duration-500 max-w-md mx-auto py-10">
-          <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-10 h-10" />
+      {/* --- PASUL SUCCES + DONAȚIE (INLOCUIEȘTE PASUL VECHI DE PAYMENT STRIPE) --- */}
+      {step === "success" && (
+        <div className="text-center animate-in zoom-in duration-500 max-w-md mx-auto py-6 flex flex-col items-center space-y-6">
+          <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shadow-inner animate-bounce">
+            <CheckCircle2 className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-black mb-4">ANUNȚ SALVAT!</h2>
-          <p className="text-stone-500 mb-10">
-            {selectedPlan?.id === "basic" && selectedDuration.days === 30
-              ? "Apasă pe butonul de mai jos pentru a-ți publica anunțul gratuit!"
-              : "Finalizează plata securizată cu Stripe pentru a activa anunțul."}
-          </p>
-          <div className="bg-stone-50 p-6 rounded-[2rem] border-2 border-stone-100 mb-10 text-left">
-            <div className="flex justify-between mb-4">
-              <span className="text-[10px] font-black text-stone-400 uppercase">
-                Pachet
-              </span>
-              <span className="font-black text-stone-900">
-                {selectedPlan?.name} ({selectedDuration.label})
-              </span>
-            </div>
-            <div className="flex justify-between border-t border-stone-200 pt-4">
-              <span className="text-[10px] font-black text-stone-400 uppercase">
-                Total
-              </span>
-              <span className="text-2xl font-black text-stone-900">
-                {totalPrice} RON
-              </span>
-            </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-stone-900 tracking-tight">
+              Anunțul tău este live pe Locallio!
+            </h2>
+            <p className="text-sm text-stone-500 max-w-sm mx-auto leading-relaxed">
+              Îți mulțumim că ai ales să-ți pui roadele muncii pe raftul nostru
+              virtual. Sperăm să ai parte de cât mai mulți cumpărători
+              gospodari!
+            </p>
           </div>
-          <button
-            type="button"
-            onClick={handlePayment}
-            className="w-full bg-emerald-600 text-white py-6 rounded-[1.5rem] font-black uppercase text-xs hover:bg-emerald-700 shadow-xl flex items-center justify-center gap-2"
-          >
-            {selectedPlan?.id === "basic" && selectedDuration.days === 30
-              ? "Publică Anunțul Gratuit"
-              : "Plătește cu Stripe"}{" "}
-            <ChevronRight className="w-4 h-4" />
-          </button>
+
+          <div className="bg-stone-50 border border-stone-100 rounded-3xl p-5 text-left space-y-3 w-full">
+            <h3 className="text-[10px] font-black text-stone-400 uppercase tracking-widest flex items-center gap-2">
+              <Coffee size={14} className="text-emerald-600" /> Susții
+              platforma?
+            </h3>
+            <p className="text-xs text-stone-500 leading-relaxed">
+              Suntem o echipă mică și independentă. Nu avem investitori mari în
+              spate, iar întreținerea hărților interactive și promovarea costă.
+              Dacă platforma îți aduce vânzări și vrei să ne ajuți să o ținem în
+              viață, poți lăsa o mică donație (cât o cafea).
+            </p>
+          </div>
+
+          <div className="w-full flex flex-col gap-2 pt-2">
+            <a
+              href="https://link-ul-tau-de-stripe-sau-donation.com"
+              target="_blank"
+              rel="noreferrer"
+              className="w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-black uppercase py-4 rounded-2xl shadow-lg transition-all text-center flex items-center justify-center gap-2"
+            >
+              ☕ Lasă o cafea (Donație)
+            </a>
+            <button
+              type="button"
+              onClick={() => {
+                // Închidem modalul sau redirectăm pe pagina principală curată
+                if (onClose) onClose();
+                window.location.href = "/?payment=success";
+              }}
+              className="w-full bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs font-bold py-4 rounded-2xl transition-all text-center"
+            >
+              Poate mai târziu, doar să am vânzare!
+            </button>
+          </div>
         </div>
       )}
     </div>
