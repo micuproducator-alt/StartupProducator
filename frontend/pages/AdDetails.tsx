@@ -214,24 +214,39 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
     }
   };
 
-  if (loading && !ad)
+  // --- STATE-URI / HOOKS (le lași pe ale tale aici, ex: const [showEmail, setShowEmail] = useState(false);)
+
+  // Verificări de siguranță (Trebuie să fie obligatoriu înainte de orice logica/calcul care folosește "ad")
+  if (loading && !ad) {
     return (
-      <div className="p-12 text-center text-gray-500">
+      <div className="p-12 text-center text-stone-500 font-bold">
         Se încarcă detaliile...
       </div>
     );
+  }
 
-  // NEATINS: Asta o lași exact așa cum era, sub ea:
-  if (!ad)
+  if (!ad) {
     return (
-      <div className="p-12 text-center text-red-500">
+      <div className="p-12 text-center text-rose-500 font-bold">
         Anunțul nu a fost găsit.
       </div>
     );
+  }
 
-  const whatsappLink = ad.phone_number
-    ? `https://wa.me/40${ad.phone_number.replace(/^0/, "")}?text=Salut, am vazut anuntul "${ad.title}" pe MiculProducator.`
+  // ⚡️ CONSTRUIRE LINK-URI ACȚIUNE RAPIDĂ
+  // Link-ul de WhatsApp (Asigură-te că folosești câmpul corect din baza ta de date: ad.phoneNumber sau ad.phone_number)
+  // ⚡️ CONSTRUIRE LINK-URI ACȚIUNE RAPIDĂ (Corectat pentru tipul exact de date 'phone_number')
+  const userPhone = ad.phone_number;
+
+  const whatsappLink = userPhone
+    ? `https://wa.me/40${userPhone.replace(/\D/g, "").replace(/^0/, "").replace(/^40/, "")}?text=Salut,%20am%20v%C4%83zut%20anun%C8%9Bul%20t%C4%83u%20"${encodeURIComponent(ad.title)}"%20pe%20Locallio.`
     : null;
+
+  // Link-ul de Google Maps (Căutare după oraș și județ)
+  const mapsLink =
+    ad.city && ad.county
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${ad.city}, ${ad.county}, Romania`)}`
+      : null;
 
   // --- LOGICA SCHEMA DATA PENTRU GOOGLE ---
   const schemaData = {
@@ -484,42 +499,102 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
             </div>
           </div>
 
-          <div className="mt-8 p-4 sm:p-8 bg-emerald-50/50 rounded-3xl sm:rounded-[2.5rem] border border-emerald-100/50 w-full">
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full">
-              {whatsappLink && (
+          <div className="mt-8 p-4 sm:p-8 bg-emerald-50/50 rounded-3xl sm:rounded-[2.5rem] border border-emerald-100/50 w-full animate-in fade-in duration-300">
+            <div className="flex flex-col sm:grid sm:grid-cols-3 gap-3 sm:gap-4 w-full">
+              {/* 🟢 BUTTON 1: WHATSAPP */}
+              {whatsappLink ? (
                 <a
                   href={whatsappLink}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-full sm:flex-1 h-14 sm:h-16 flex items-center justify-center gap-3 bg-[#25D366] text-white rounded-xl sm:rounded-2xl font-bold uppercase tracking-wider text-sm sm:text-xs hover:shadow-lg transition-all active:scale-95"
+                  className="w-full h-14 sm:h-16 flex items-center justify-center gap-3 bg-[#25D366] text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-wider text-xs hover:shadow-xl hover:bg-[#20ba5a] transition-all active:scale-[0.98] shadow-md cursor-pointer text-center"
                 >
-                  Contact WhatsApp
+                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.713-1.455L0 24zm6.735-3.822c1.62.963 3.42 1.47 5.258 1.471 5.566 0 10.093-4.524 10.096-10.094.002-2.699-1.047-5.236-2.952-7.143C17.27 2.505 14.735 1.458 12.01 1.458c-5.574 0-10.102 4.525-10.104 10.097-.001 1.774.463 3.511 1.348 5.038L2.244 21.8l5.127-1.345z" />
+                  </svg>
+                  WhatsApp
+                </a>
+              ) : (
+                // Fallback dacă nu are telefon completat, îi dăm buton de apel simplu (dacă există totuși un număr)
+                userPhone && (
+                  <a
+                    href={`tel:${userPhone}`}
+                    className="w-full h-14 sm:h-16 flex items-center justify-center gap-3 bg-stone-900 text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-wider text-xs hover:shadow-xl transition-all active:scale-[0.98] shadow-md cursor-pointer text-center"
+                  >
+                    Suna Producatorul
+                  </a>
+                )
+              )}
+
+              {/* 🔵 BUTTON 2: GOOGLE MAPS */}
+              {mapsLink && (
+                <a
+                  href={mapsLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full h-14 sm:h-16 flex items-center justify-center gap-3 bg-blue-600 text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-wider text-xs hover:shadow-xl hover:bg-blue-700 transition-all active:scale-[0.98] shadow-md cursor-pointer text-center"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2.5}
+                    stroke="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+                    />
+                  </svg>
+                  Arată Locația
                 </a>
               )}
 
+              {/* ⚪️ BUTTON 3: EMAIL INTELIGENT */}
               {!showEmail ? (
                 <button
+                  type="button"
                   onClick={() => setShowEmail(true)}
-                  className="w-full sm:flex-1 h-14 sm:h-16 flex items-center justify-center gap-3 bg-white border border-stone-200 text-stone-700 rounded-xl sm:rounded-2xl font-bold uppercase tracking-wider text-sm sm:text-xs hover:bg-stone-50 transition-all active:scale-95 shadow-sm"
+                  className="w-full h-14 sm:h-16 flex items-center justify-center gap-3 bg-white border border-stone-200 text-stone-700 rounded-xl sm:rounded-2xl font-black uppercase tracking-wider text-xs hover:bg-stone-50 transition-all active:scale-[0.98] shadow-md cursor-pointer"
                 >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-5 h-5 text-stone-400"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
+                    />
+                  </svg>
                   Afișează Email
                 </button>
               ) : (
                 <a
                   href={`mailto:${ad.email}`}
-                  className="w-full sm:flex-1 h-14 sm:h-16 flex flex-col items-center justify-center bg-white border-2 border-emerald-100 text-stone-800 rounded-xl sm:rounded-2xl transition-all shadow-md px-2 overflow-hidden"
+                  className="w-full h-14 sm:h-16 flex flex-col items-center justify-center bg-white border-2 border-emerald-100 text-stone-800 rounded-xl sm:rounded-2xl transition-all shadow-md px-2 overflow-hidden hover:bg-stone-50/50"
                 >
                   <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">
-                    Email:
+                    Trimite mail direct:
                   </span>
-                  <span className="text-sm sm:text-xs font-black text-emerald-700 truncate max-w-full">
+                  <span className="text-xs font-black text-emerald-700 truncate max-w-full">
                     {ad.email}
                   </span>
                 </a>
               )}
             </div>
           </div>
-
           <div className="mt-20 pt-16 border-t border-stone-100">
             <div className="flex items-center justify-between mb-10">
               <h3 className="text-xl font-black text-stone-900 uppercase tracking-tight">
