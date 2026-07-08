@@ -69,6 +69,26 @@ export const Home: React.FC<HomeProps> = ({
     setRouteEndCounty("");
     setCurrentPage(1);
   };
+  // ⚡️ COD NOU: Verificăm dacă există cel puțin un filtru activat
+  const hasActiveFilters = useMemo(() => {
+    return (
+      searchTerm !== "" ||
+      filterCounty !== "" ||
+      filterCity !== "" ||
+      selectedCategory !== "" ||
+      showFavoritesOnly === true ||
+      routeStartCounty !== "" ||
+      routeEndCounty !== ""
+    );
+  }, [
+    searchTerm,
+    filterCounty,
+    filterCity,
+    selectedCategory,
+    showFavoritesOnly,
+    routeStartCounty,
+    routeEndCounty,
+  ]);
 
   const loadAds = async () => {
     try {
@@ -260,8 +280,14 @@ export const Home: React.FC<HomeProps> = ({
                 Filtrează
               </h2>
               <button
+                type="button"
+                disabled={!hasActiveFilters}
                 onClick={handleResetFilters}
-                className="text-[11px] font-bold text-stone-300 hover:text-rose-500 uppercase tracking-tighter transition-colors"
+                className={`text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
+                  hasActiveFilters
+                    ? "text-emerald-600 hover:text-emerald-700 cursor-pointer scale-105 active:scale-95"
+                    : "text-stone-300 opacity-50 pointer-events-none"
+                }`}
               >
                 Resetează
               </button>
