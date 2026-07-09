@@ -534,7 +534,7 @@ const App: React.FC = () => {
                       onClick={() => setIsGuideModalOpen(true)}
                       className="hover:text-emerald-700 transition-colors text-left"
                     >
-                      Ghidul Platformei
+                      Misiunea Locallio
                     </button>
                   </li>
                   <li>
@@ -611,7 +611,7 @@ const App: React.FC = () => {
         <Modal
           isOpen={isGuideModalOpen}
           onClose={handleCloseGuideModal}
-          title="Ghidul Platformei Locallio"
+          title="Misiunea Locallio"
         >
           <GhidContinut />
         </Modal>

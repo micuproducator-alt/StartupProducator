@@ -71,7 +71,7 @@ export default function MisiuneaNoastraContinut() {
             Locallio s-a născut dintr-un vis simplu, dar puternic: acela de a
             transforma România într-un hub central al gustului autentic.
             Conectăm inima gospodăriilor românești direct cu comunitățile
-            urbane, eliminând complet intermediarii și comisioanele.
+            urbane.
           </p>
         </section>
 
