@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 
 const CATEGORIES = [
   "Legume",
@@ -15,97 +16,90 @@ const CATEGORIES = [
   "Flori & Plante",
 ];
 
-const PLANS = [
-  {
-    name: "Starter",
-    reach: "1 categorie",
-    price: "10",
-    line: "Pentru un singur produs, simplu și direct.",
-  },
-  {
-    name: "Grower",
-    reach: "3 categorii",
-    price: "20",
-    line: "Adaugi marfa o dată, apare în trei locuri deodată.",
-    featured: true,
-  },
-  {
-    name: "Pro Market",
-    reach: "5 categorii",
-    price: "30",
-    line: "Vizibilitate maximă, în cinci rafturi simultan.",
-  },
-];
-
 /* ——— BLOCURI REUTILIZABILE INTERNE ——— */
-
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="text-[11px] font-semibold uppercase tracking-[0.25em] text-stone-400">
+    <h3 className="text-[11px] font-black uppercase tracking-[0.25em] text-emerald-600 mb-6">
       {children}
     </h3>
   );
 }
 
-function Step({ n, title, text }: { n: string; title: string; text: string }) {
+function Pillar({
+  title,
+  text,
+  icon,
+}: {
+  title: string;
+  text: string;
+  icon: string;
+}) {
   return (
-    <div className="flex gap-4 sm:gap-5">
-      <span className="text-sm font-bold text-emerald-600 tabular-nums pt-0.5 shrink-0">
-        {n}
+    <div className="flex gap-4 items-start p-4 rounded-2xl border border-stone-100 bg-stone-50/50 hover:bg-white hover:shadow-xl hover:shadow-stone-200/50 transition-all duration-300">
+      <span className="text-2xl shrink-0 p-2 bg-emerald-50 rounded-xl">
+        {icon}
       </span>
       <div>
-        <h4 className="text-lg font-semibold text-stone-900 mb-1.5">{title}</h4>
-        <p className="text-base leading-relaxed text-stone-500">{text}</p>
+        <h4 className="text-base font-bold text-stone-950 mb-1">{title}</h4>
+        <p className="text-sm leading-relaxed text-stone-500">{text}</p>
       </div>
     </div>
   );
 }
 
 function Divider() {
-  return <div className="h-px bg-stone-100" />;
+  return <div className="h-px bg-stone-100 my-10" />;
 }
 
-export default function GhidContinut() {
+export default function MisiuneaNoastraContinut() {
   return (
     <div className="font-sans text-stone-800 w-full max-w-2xl mx-auto">
-      <div className="max-h-[68vh] overflow-y-auto px-2 sm:px-4 custom-scrollbar">
-        {/* ——— DESCHIDERE ——— */}
-        <section className="pt-6 pb-12 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-emerald-600 mb-4">
-            Bun venit pe Locallio
+      <div className="max-h-[65vh] overflow-y-auto px-2 sm:px-4 custom-scrollbar">
+        {/* ——— VISUL NOSTRU ——— */}
+        <section className="pt-4 pb-8 text-center">
+          <p className="text-[11px] font-black uppercase tracking-[0.25em] text-emerald-600 mb-4">
+            Rădăcini Puternice, Viitor Curat
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold leading-[1.15] tracking-tight text-stone-900 mb-5">
-            Mâncare adevărată,
+          <h2 className="text-3xl sm:text-4xl font-black leading-[1.15] tracking-tight text-stone-900 mb-5">
+            Scurtăm drumul de la pământ,
             <br />
-            direct de la cei care o fac.
+            <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+              direct pe masa ta.
+            </span>
           </h2>
-          <p className="text-base leading-relaxed text-stone-500 max-w-md mx-auto">
-            Suntem locul unde gospodarii din toată țara își întâlnesc oamenii.
-            Fără supermarket la mijloc, fără comisioane pe vânzare. Doar tu și
-            producătorul, la un telefon distanță.
+          <p className="text-base leading-relaxed text-stone-600 font-medium max-w-xl mx-auto">
+            Locallio s-a născut dintr-un vis simplu, dar puternic: acela de a
+            transforma România într-un hub central al gustului autentic.
+            Conectăm inima gospodăriilor românești direct cu comunitățile
+            urbane, eliminând complet intermediarii și comisioanele.
           </p>
         </section>
 
         <Divider />
 
-        {/* ——— CUM FUNCȚIONEAZĂ ——— */}
-        <section className="py-12">
-          <SectionLabel>Cum merge</SectionLabel>
-          <div className="space-y-8 mt-6">
-            <Step
-              n="1"
-              title="Cauți"
-              text="Răsfoiești după categorie sau după zonă. Vrei să cumperi de pe traseul tău spre casă? Pornește modul „La drum” și vezi tot ce e pe rută."
+        {/* ——— CEI 4 PILONI ——— */}
+        <section>
+          <SectionLabel>Valorile Platformei</SectionLabel>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Pillar
+              icon="📍"
+              title="Vizibilitate Absolută"
+              text="Aducem micii producători din anonimat direct pe harta României. Indiferent cât de ascunsă e grădina ta, meriți să fii găsit de cumpărători din orice colț al țării."
             />
-            <Step
-              n="2"
-              title="Suni"
-              text="Găsești ceva ce-ți place, suni direct producătorul. Vorbești om cu om despre preț, despre livrare, despre cum a fost cultivat."
+            <Pillar
+              icon="🤝"
+              title="Conexiune Rapidă"
+              text="Facilităm legături umane, directe și calde. Fără birocrație, fără cozi, fără contracte complicate. Doar un telefon sau un mesaj pe WhatsApp între tine și producător."
             />
-            <Step
-              n="3"
-              title="Primești"
-              text="Vă înțelegeți cum vă convine amândurora. Noi nu ne băgăm și nu luăm un leu din vânzarea ta."
+            <Pillar
+              icon="🍃"
+              title="Transparență Totală"
+              text="Cumperi direct de la sursă, cunoscând povestea din spatele fiecărui produs. Știi exact cine a cultivat pământul și cum a fost pregătită hrana ta."
+            />
+            <Pillar
+              icon="📈"
+              title="Economie Locală"
+              text="Fiecare leu investit pe Locallio rămâne în buzunarul celui care a muncit. Sprijinim dezvoltarea satelor românești și păstrarea tradițiilor vii."
             />
           </div>
         </section>
@@ -113,17 +107,18 @@ export default function GhidContinut() {
         <Divider />
 
         {/* ——— CATEGORII ——— */}
-        <section className="py-12">
-          <SectionLabel>Ce găsești aici</SectionLabel>
-          <p className="text-base leading-relaxed text-stone-500 mt-4 mb-6 max-w-md">
-            De la roșii crescute în grădină până la coșuri împletite de mână.
-            Tot ce înseamnă muncă de gospodar, într-un singur loc.
+        <section>
+          <SectionLabel>Comunitatea Noastră Biodiversă</SectionLabel>
+          <p className="text-sm leading-relaxed text-stone-500 mb-6 max-w-md">
+            De la miere pură de pădure și brânzeturi maturate în tihnă, până la
+            artizanat cusut cu suflet. Locallio găzduiește tot ce are România
+            mai roditor:
           </p>
           <div className="flex flex-wrap gap-2">
             {CATEGORIES.map((cat) => (
               <span
                 key={cat}
-                className="px-4 py-2 text-xs sm:text-sm font-medium text-stone-600 bg-stone-50 border border-stone-200 rounded-full hover:bg-stone-100 transition-colors cursor-default"
+                className="px-3.5 py-1.5 text-xs font-semibold text-stone-600 bg-stone-50 border border-stone-200 rounded-full hover:border-emerald-200 hover:bg-emerald-50/20 transition-all cursor-default"
               >
                 {cat}
               </span>
@@ -133,67 +128,14 @@ export default function GhidContinut() {
 
         <Divider />
 
-        {/* ——— PACHETE ——— */}
-        <section className="py-12">
-          <SectionLabel>Dacă vinzi</SectionLabel>
-          <p className="text-base leading-relaxed text-stone-500 mt-4 mb-8 max-w-md">
-            Alegi un pachet o singură dată, după cât de mult vrei să fii văzut.
-            Cu cand anunțul tău e într-un pachet mai generos, apare în mai multe
-            categorii deodată fără să-l postezi de mai multe ori.
+        {/* ——— CUVÂNT DE ÎNCHEIERE ——— */}
+        <section className="pb-8 text-center">
+          <p className="text-xl font-bold bg-gradient-to-r from-stone-800 to-stone-600 bg-clip-text text-transparent leading-relaxed max-w-md mx-auto italic">
+            „O țară care își hrănește producătorii, este o țară care își asigură
+            un viitor sănătos.”
           </p>
-
-          <div className="space-y-3">
-            {PLANS.map((plan) => (
-              <div
-                key={plan.name}
-                className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border transition-all ${
-                  plan.featured
-                    ? "border-emerald-200 bg-emerald-50/30 shadow-sm shadow-emerald-100/50"
-                    : "border-stone-200 bg-white"
-                }`}
-              >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2.5 mb-1">
-                    <h4 className="text-base font-bold text-stone-900">
-                      {plan.name}
-                    </h4>
-                    {plan.featured && (
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
-                        Popular
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-stone-500 leading-snug">
-                    {plan.line}
-                  </p>
-                </div>
-
-                <div className="text-left sm:text-right shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-100 sm:block flex justify-between items-center">
-                  <div className="text-xl font-bold text-stone-900 leading-none">
-                    {plan.price}
-                    <span className="text-xs font-normal text-stone-400 ml-0.5">
-                      lei
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-stone-400 mt-1 font-medium bg-stone-100 sm:bg-transparent px-2 py-0.5 sm:px-0 sm:py-0 rounded-md">
-                    {plan.reach}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <Divider />
-
-        {/* ——— ÎNCHEIERE ——— */}
-        <section className="py-12 text-center">
-          <p className="text-lg font-medium text-stone-700 leading-relaxed max-w-sm mx-auto">
-            Atât. Simplu, ca pe vremuri doar că acum
-            <br className="hidden sm:block" /> piața încape în buzunar.
-          </p>
-          <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.25em] text-stone-300 pointer-events-none">
-            Locallio
+          <p className="mt-8 text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500/60">
+            Locallio • Împreună Creștem România
           </p>
         </section>
       </div>
