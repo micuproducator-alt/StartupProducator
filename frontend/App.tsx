@@ -366,11 +366,11 @@ const App: React.FC = () => {
                 <button
                   onClick={() => setIsGuideModalOpen(true)}
                   className="text-base sm:text-xs font-bold uppercase tracking-widest text-stone-500 hover:text-emerald-700 bg-stone-50 hover:bg-emerald-50/50 p-2.5 sm:px-4 sm:py-2.5 rounded-xl border border-stone-100 transition-all flex items-center justify-center min-w-[40px] h-[40px]"
-                  title="Ghid Platformă"
+                  title="Misiunea Locallio"
                 >
                   <span>📖</span>
                   <span className="hidden sm:inline ml-1.5">
-                    Ghid Platformă
+                    Misiunea Locallio
                   </span>
                 </button>
 
