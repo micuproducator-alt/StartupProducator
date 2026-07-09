@@ -18,19 +18,14 @@ export default function MisiuneaNoastra({
     if (isTriggeredByNavbar) {
       setIsOpen(!!isOpenExternal);
     } else {
-      // Evităm spamul la refresh, dar păstrăm logica în caz că vrei să apară o singură dată automat
-      const hasSeenMission = localStorage.getItem("hasSeenLocallioMission");
-      if (!hasSeenMission) {
-        setIsOpen(true);
-      }
+      // ⚡️ MODIFICARE: Forțăm deschiderea la ABSOLUT FIECARE accesare sau refresh
+      setIsOpen(true);
     }
   }, [isOpenExternal, isTriggeredByNavbar]);
 
   const handleClose = () => {
     setIsOpen(false);
-    if (!isTriggeredByNavbar) {
-      localStorage.setItem("hasSeenLocallioMission", "true");
-    }
+    // ⚡️ MODIFICARE: Am șters linia cu localStorage ca să nu mai blocheze aparițiile viitoare
     if (onCloseExternal) onCloseExternal();
   };
 
@@ -39,14 +34,15 @@ export default function MisiuneaNoastra({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-md animate-fade-in">
       <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-3xl flex flex-col border border-stone-100 transform transition-all scale-100 max-h-[90vh] overflow-hidden">
-        {/* Header Pop-up (Pompinteligent, culori de impact) */}
+        {/* Header Pop-up */}
         <div className="flex items-center justify-between p-6 sm:p-8 border-b border-stone-50 bg-gradient-to-r from-emerald-700 to-emerald-600 text-white relative">
           <div>
             <span className="text-[10px] bg-white/20 px-2.5 py-1 rounded-full uppercase font-black tracking-widest text-emerald-100 mb-2 inline-block">
               Manifestul Locallio
             </span>
             <h2 className="text-xl sm:text-2xl font-black tracking-tight mt-1">
-              Misiunea Noastră Platformei
+              Misiunea Platformei Locallio{" "}
+              {/* 🔥 Corectat titlul de exprimare aici */}
             </h2>
             <p className="text-xs sm:text-sm text-emerald-100/90 font-medium mt-1">
               Descoperă cum reconstruim legătura dintre gospodari și masa ta.
@@ -62,7 +58,7 @@ export default function MisiuneaNoastra({
 
         {/* Conținutul propriu-zis (Scrollable) */}
         <div className="p-6 sm:p-8 overflow-y-auto bg-white">
-          <GhidContinut />
+          <GhidContinut /> {/* 🔥 Înlocuit componenta veche cu cea nouă */}
         </div>
 
         {/* Footer Pop-up */}
