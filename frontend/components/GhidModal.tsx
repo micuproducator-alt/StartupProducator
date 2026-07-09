@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import MisiuneaNoastraContinut from "./MisiuneaNoastraContinut";
+import GhidContinut from "./GhidContinut";
 
 interface MisiuneaNoastraProps {
   isOpenExternal?: boolean;
@@ -62,7 +62,7 @@ export default function MisiuneaNoastra({
 
         {/* Conținutul propriu-zis (Scrollable) */}
         <div className="p-6 sm:p-8 overflow-y-auto bg-white">
-          <MisiuneaNoastraContinut />
+          <GhidContinut />
         </div>
 
         {/* Footer Pop-up */}
