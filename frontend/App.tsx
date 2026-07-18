@@ -454,16 +454,32 @@ const App: React.FC = () => {
         <footer className="bg-stone-50 border-t border-stone-200/60 pt-16 pb-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
+              {/* COLOANA BRAND (Stânga) - MODIFICATĂ PENTRU ARTCLLICK */}
               <div className="space-y-6">
-                <span className="text-lg font-bold text-stone-900 tracking-tight">
-                  Locallio
-                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-lg font-bold text-stone-900 tracking-tight">
+                    Locallio
+                  </span>
+                  <span className="text-[9px] font-medium text-stone-400">
+                    powered by{" "}
+                    <a
+                      href="https://www.artcllick.ro"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-black tracking-wide bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 bg-clip-text text-transparent hover:brightness-110 transition-all duration-300"
+                    >
+                      Artcllick.ro
+                    </a>
+                  </span>
+                </div>
+
                 <p className="text-xs text-stone-500 leading-relaxed max-w-xs">
                   Susținem producătorii locali prin tehnologie intuitivă,
                   conectând gospodăriile autentice cu consumatorii moderni.
                 </p>
+
                 <div className="flex gap-4">
-                  {/* REPARAT: Adăugat tagul <a> deschis corect pentru Facebook */}
+                  {/* Facebook */}
                   <a
                     href="https://www.facebook.com/profile.php?id=61590431496895"
                     target="_blank"
@@ -480,7 +496,7 @@ const App: React.FC = () => {
                     </svg>
                   </a>
 
-                  {/* REPARAT: Adăugat tagul <a> deschis corect pentru Instagram */}
+                  {/* Instagram */}
                   <a
                     href="https://www.instagram.com/locallio.ro/"
                     target="_blank"
@@ -493,11 +509,11 @@ const App: React.FC = () => {
                       fill="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.012-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204 0i1.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
                     </svg>
                   </a>
 
-                  {/* REPARAT: Adăugat tagul <a> deschis corect pentru LinkedIn */}
+                  {/* LinkedIn */}
                   <a
                     href="#"
                     target="_blank"
@@ -516,6 +532,7 @@ const App: React.FC = () => {
                 </div>
               </div>
 
+              {/* COLOANA NAVIGAȚIE (Centru) */}
               <div className="space-y-6">
                 <h4 className="text-[10px] font-bold text-stone-400 uppercase tracking-[0.2em]">
                   Navigație
@@ -556,6 +573,7 @@ const App: React.FC = () => {
                 </ul>
               </div>
 
+              {/* COLOANA CONTACT (Dreapta) */}
               <div className="space-y-6">
                 <h4 className="text-[10px] font-bold text-stone-400 uppercase tracking-[0.2em]">
                   Contact Platformă
@@ -563,7 +581,6 @@ const App: React.FC = () => {
                 <p className="text-xs text-stone-600 leading-relaxed">
                   Ești producător și ai nevoie de suport tehnic?
                   <br />
-                  {/* REPARAT: Adăugat tagul <a> deschis corect pentru mailto */}
                   <a
                     href="mailto:micuproducator@gmail.com"
                     className="text-emerald-600 hover:underline font-bold"
@@ -579,6 +596,7 @@ const App: React.FC = () => {
               </div>
             </div>
 
+            {/* FOOTER BOTTOM BAR */}
             <div className="border-t border-stone-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
               <p className="text-[9px] font-bold text-stone-400 uppercase tracking-[0.2em]">
                 &copy; {new Date().getFullYear()} Locallio. Digitalizing
