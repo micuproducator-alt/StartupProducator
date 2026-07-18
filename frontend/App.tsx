@@ -481,7 +481,7 @@ const App: React.FC = () => {
                 <div className="flex gap-4 pt-1">
                   {/* Facebook */}
                   <a
-                    href="https://www.facebook.com/profile.php?id=61590431496895"
+                    href="https://www.facebook.com/profile.php?id=61590795770947"
                     target="_blank"
                     rel="noreferrer"
                     className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-stone-500 hover:text-emerald-600 hover:border-emerald-200 hover:shadow-sm transition-all"
