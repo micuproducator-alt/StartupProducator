@@ -289,12 +289,10 @@ export const Home: React.FC<HomeProps> = ({
               Susținem Gospodarii Români! 🇷🇴
             </h3>
             <p className="text-xs text-emerald-100 font-medium">
-              Publicarea și vizualizarea anunțurilor pe Locallio sunt și vor
-              rămâne{" "}
+              Publicarea și vizualizarea anunțurilor pe Locallio sunt acum{" "}
               <span className="font-bold underline decoration-wavy decoration-yellow-400">
-                100% GRATUITE
+                100% GRATUITE.
               </span>
-              . Fără comisioane!
             </p>
           </div>
         </div>
