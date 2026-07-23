@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { PRODUCT_CATEGORIES } from "../types";
-import { generateSlug } from "../utils/slug";
+import { generateUniqueAdSlug } from "../utils/slug";
 import { createFullAd } from "../services/adsService";
 import {
   Loader2,
@@ -222,7 +222,7 @@ export const CreateAd: React.FC<CreateAdProps> = ({ onNavigate }) => {
       const countyName =
         counties.find((c) => c.county_code === parseInt(selectedCountyCode))
           ?.name || "";
-      const adSlug = `${generateSlug(title)}-${Math.random().toString(36).substring(7)}`;
+      const adSlug = generateUniqueAdSlug(title);
 
       // ⚡️ VERIFICARE PACKET PROMOȚIONAL:
       const isPromoFree =
