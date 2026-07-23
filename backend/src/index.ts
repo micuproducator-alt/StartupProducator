@@ -8,6 +8,7 @@ import bodyParser from "body-parser";
 import prisma from "./lib/prisma.js";
 import crypto from "crypto";
 import { Prisma } from "@prisma/client";
+import sitemapRouter from "./routes/sitemap.js";
 import { CreateAdSchema, UpdateAdSchema } from "./schemas/ad.schema.js";
 import Stripe from "stripe";
 import paymentRouter from "./routes/payment.js";
@@ -154,6 +155,9 @@ app.post(
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use("/api/payment", paymentRouter);
+
+// 👇 AICI PUNEM SITEMAP-UL
+app.use("/", sitemapRouter);
 
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000,
