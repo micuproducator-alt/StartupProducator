@@ -379,15 +379,15 @@ const App: React.FC = () => {
                     Misiunea Locallio
                   </span>
                 </button>
-                {/* 2. BUTON NOU: CONTACT */}
-                <a
-                  href="mailto:contact@locallio.ro"
+                {/* BUTON CONTACT (Navighează la pagina/formularul de contact) */}
+                <button
+                  onClick={() => navigate("/Contacts")} // Pune calea exactă pe care o folosești și în footer
                   className="text-xs font-bold uppercase tracking-wider text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl shadow-sm hover:shadow transition-all flex items-center"
-                  title="Contactează-ne"
+                  title="Contact & Support"
                 >
                   <span>✉️</span>
-                  <span className="ml-1.5">Contact</span>
-                </a>
+                  <span className="ml-1.5">Contactează-ne</span>
+                </button>
 
                 {/* CLOPOȚEL NOTIFICĂRI */}
                 <div className="relative" ref={notifDropdownRef}>
@@ -574,7 +574,7 @@ const App: React.FC = () => {
                       onClick={() => navigate("/Contacts")}
                       className="hover:text-emerald-700 transition-colors"
                     >
-                      Contact & Suport
+                      Contactează-ne
                     </button>
                   </li>
                   <li>
