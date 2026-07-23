@@ -291,7 +291,7 @@ const App: React.FC = () => {
 
     // RUTA PENTRU CONTACT
     if (cleanPath === "/Contacts") {
-      return <Contact onAddToast={addToast} />;
+      return <Contact onAddToast={addToast} onNavigate={navigate} />;
     }
 
     // Aceasta rămâne ultima, pentru pagini inexistente
