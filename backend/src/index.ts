@@ -165,6 +165,84 @@ const limiter = rateLimit({
   message: { error: "Prea multe cereri." },
 });
 app.use("/api/", limiter);
+// --- RUTA CONTACT (BREVO INTEGRATION) ---
+app.post(
+  "/api/contact",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { name, email, subject, message } = req.body;
+
+      if (!name || !email || !message) {
+        return res
+          .status(400)
+          .json({ error: "Numele, email-ul și mesajul sunt obligatorii." });
+      }
+
+      const brevoApiKey = process.env.BREVO_API_KEY;
+      if (!brevoApiKey) {
+        console.error("❌ BREVO_API_KEY lipsește din variabilele de mediu.");
+        return res
+          .status(500)
+          .json({ error: "Configurație email indisponibilă pe server." });
+      }
+
+      // Trimite email prin Brevo API
+      const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+          "api-key": brevoApiKey,
+        },
+        body: JSON.stringify({
+          sender: {
+            name: "Locallio Contact",
+            email: process.env.SENDER_EMAIL || "contact@locallio.ro",
+          },
+          to: [
+            {
+              email:
+                process.env.CONTACT_RECEIVER_EMAIL || "contact@locallio.ro",
+              name: "Suport Locallio",
+            },
+          ],
+          replyTo: {
+            email: email,
+            name: name,
+          },
+          subject: `[Contact Locallio] ${subject || "Mesaj nou"}: de la ${name}`,
+          htmlContent: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px;">
+            <h2 style="color: #059669; border-bottom: 2px solid #059669; padding-bottom: 8px;">Mesaj nou din Formularul de Contact</h2>
+            <p><strong>Nume expeditor:</strong> ${name}</p>
+            <p><strong>Email expeditor:</strong> <a href="mailto:${email}">${email}</a></p>
+            <p><strong>Subiect:</strong> ${subject}</p>
+            <div style="margin-top: 20px; background-color: #f9fafb; padding: 16px; border-left: 4px solid #059669; border-radius: 4px;">
+              <p style="margin: 0; font-weight: bold; color: #4b5563;">Mesaj:</p>
+              <p style="margin-top: 8px; white-space: pre-wrap;">${message}</p>
+            </div>
+            <p style="font-size: 12px; color: #6b7280; margin-top: 24px;">Puteți da 'Reply' direct la acest email pentru a-i răspunde utilizatorului.</p>
+          </div>
+        `,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("❌ Eroare Brevo Contact:", errorData);
+        return res.status(500).json({
+          error: "Nu s-a putut trimite mesajul prin serviciul de email.",
+        });
+      }
+
+      return res
+        .status(200)
+        .json({ success: true, message: "Mesajul a fost trimis cu succes!" });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 // --- 4. RUTE GEOGRAFIE (NOU - PRODUCTION READY) ---
 

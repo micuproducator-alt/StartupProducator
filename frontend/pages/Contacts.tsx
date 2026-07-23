@@ -29,26 +29,43 @@ export const Contact: React.FC<ContactProps> = ({ onAddToast, onNavigate }) => {
     setLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Preluăm variabila VITE_API_URL (https://startupproducator.onrender.com)
+      const apiUrl = import.meta.env.VITE_API_URL;
 
-      if (onAddToast) {
-        onAddToast(
-          "success",
-          "Mesajul tău a fost trimis! Îți vom răspunde în cel mai scurt timp.",
-        );
-      }
-
-      setFormData({
-        name: "",
-        email: "",
-        subject: "Gospodar / Producător",
-        message: "",
+      const response = await fetch(`${apiUrl}/api/contact`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
       });
-    } catch (error) {
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (onAddToast) {
+          onAddToast(
+            "success",
+            "Mesajul tău a fost trimis! Îți vom răspunde în cel mai scurt timp.",
+          );
+        }
+
+        // Resetăm formularul
+        setFormData({
+          name: "",
+          email: "",
+          subject: "Gospodar / Producător",
+          message: "",
+        });
+      } else {
+        throw new Error(data.error || "Eroare la trimiterea mesajului.");
+      }
+    } catch (error: any) {
       if (onAddToast) {
         onAddToast(
           "error",
-          "Nu am putut trimite mesajul. Te rugăm să încerci din nou.",
+          error.message ||
+            "Nu am putut trimite mesajul. Te rugăm să încerci din nou.",
         );
       }
     } finally {
@@ -179,7 +196,7 @@ export const Contact: React.FC<ContactProps> = ({ onAddToast, onNavigate }) => {
           </form>
         </div>
 
-        {/* Casetă evidențiată JOS: Return la Anunțuri (Highlight & Ergonomic) */}
+        {/* Casetă evidențiată JOS: Return la Anunțuri */}
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-between bg-emerald-50/60 border border-emerald-100 rounded-3xl p-6 gap-4 text-center sm:text-left">
           <div>
             <h4 className="text-sm font-bold text-stone-900">
