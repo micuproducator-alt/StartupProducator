@@ -367,33 +367,36 @@ const App: React.FC = () => {
               </div>
 
               {/* NAVIGARE / BUTOANE */}
-              <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
-                {/* BUTON GHID */}
+              <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
+                {/* 1. BUTON GHID / MISIUNE (Stil subtil) */}
                 <button
                   onClick={() => setIsGuideModalOpen(true)}
-                  className="text-base sm:text-xs font-bold uppercase tracking-widest text-stone-500 hover:text-emerald-700 bg-stone-50 hover:bg-emerald-50/50 p-2.5 sm:px-4 sm:py-2.5 rounded-xl border border-stone-100 transition-all flex items-center justify-center min-w-[40px] h-[40px]"
+                  className="text-xs font-bold uppercase tracking-wider text-stone-500 hover:text-emerald-900 hover:bg-stone-100/60 p-2.5 sm:px-3.5 sm:py-2.5 rounded-xl transition-all flex items-center justify-center min-w-[40px] h-[40px]"
                   title="Misiunea Locallio"
                 >
                   <span>📖</span>
-                  <span className="hidden sm:inline ml-1.5">
+                  <span className="hidden lg:inline ml-1.5">
                     Misiunea Locallio
                   </span>
                 </button>
-                {/* BUTON CONTACT (Navighează la pagina/formularul de contact) */}
+
+                {/* 2. BUTON CONTACT (Secundar: fundal neutru, text închis) */}
                 <button
-                  onClick={() => navigate("/Contacts")} // Pune calea exactă pe care o folosești și în footer
-                  className="text-xs font-bold uppercase tracking-wider text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl shadow-sm hover:shadow transition-all flex items-center"
+                  onClick={() => navigate("/Contacts")}
+                  className="text-xs font-bold uppercase tracking-wider text-stone-700 hover:text-emerald-900 bg-stone-100/80 hover:bg-stone-200/70 border border-stone-200/50 px-3.5 py-2.5 rounded-xl transition-all flex items-center justify-center h-[40px]"
                   title="Contact & Support"
                 >
                   <span>✉️</span>
-                  <span className="ml-1.5">Contactează-ne</span>
+                  <span className="hidden sm:inline ml-1.5">
+                    Contactează-ne
+                  </span>
                 </button>
 
-                {/* CLOPOȚEL NOTIFICĂRI */}
+                {/* 3. CLOPOȚEL NOTIFICĂRI */}
                 <div className="relative" ref={notifDropdownRef}>
                   <button
                     onClick={() => setShowNotifDropdown(!showNotifDropdown)}
-                    className="p-2.5 rounded-xl text-stone-400 hover:bg-stone-50 hover:text-stone-600 transition-all border border-stone-100/40 bg-stone-50/30 relative flex items-center justify-center w-[40px] h-[40px]"
+                    className="p-2.5 rounded-xl text-stone-500 hover:bg-stone-100/80 hover:text-stone-800 transition-all border border-stone-200/50 bg-stone-50/50 relative flex items-center justify-center w-[40px] h-[40px]"
                   >
                     <svg
                       className="w-5 h-5"
@@ -405,7 +408,7 @@ const App: React.FC = () => {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 01-6 0v-1m6 0H9"
                       />
                     </svg>
                     {unreadCount > 0 && (
@@ -422,7 +425,7 @@ const App: React.FC = () => {
                             await clearAllNotifications();
                             loadNotifications();
                           }}
-                          className="text-emerald-600 hover:underline"
+                          className="text-emerald-800 hover:underline"
                         >
                           Șterge tot
                         </button>
@@ -436,7 +439,7 @@ const App: React.FC = () => {
                           notifications.map((n) => (
                             <div
                               key={n.id}
-                              className={`px-5 py-4 border-b border-stone-50 text-sm cursor-pointer hover:bg-stone-50 transition-colors ${!n.isRead ? "bg-emerald-50/30" : ""}`}
+                              className={`px-5 py-4 border-b border-stone-50 text-sm cursor-pointer hover:bg-stone-50 transition-colors ${!n.isRead ? "bg-emerald-50/20" : ""}`}
                             >
                               <p className="font-bold text-stone-800">
                                 {n.title}
@@ -452,11 +455,12 @@ const App: React.FC = () => {
                   )}
                 </div>
 
-                {/* BUTONUL ADĂUGĂ ANUNȚ */}
+                {/* 4. BUTONUL PUBLICĂ ANUNȚ (Principal CTA - Verdele din Brand) */}
                 <button
                   onClick={() => setIsCreateModalOpen(true)}
-                  className="h-[40px] px-4 sm:px-6 text-[11px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest rounded-xl shadow-sm text-white bg-stone-900 hover:bg-stone-800 transition-all active:scale-95 flex items-center justify-center"
+                  className="h-[40px] px-4 sm:px-5 text-xs font-extrabold uppercase tracking-wider rounded-xl shadow-md shadow-emerald-950/10 text-white bg-[#214E34] hover:bg-[#1a3f2a] transition-all active:scale-95 flex items-center justify-center space-x-1.5"
                 >
+                  <span className="text-sm leading-none">+</span>
                   <span>Publică Anunț</span>
                 </button>
               </div>
