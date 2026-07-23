@@ -186,7 +186,11 @@ app.post(
           .json({ error: "Configurație email indisponibilă pe server." });
       }
 
-      // Trimite email prin Brevo API
+      // Folosim adresa ta validată din .env (micuproducator@gmail.com)
+      const officialEmail =
+        process.env.OFFICIAL_EMAIL || "micuproducator@gmail.com";
+      const officialName = process.env.OFFICIAL_NAME || "Micul Producător";
+
       const response = await fetch("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
         headers: {
@@ -195,35 +199,37 @@ app.post(
           "api-key": brevoApiKey,
         },
         body: JSON.stringify({
+          // Expeditorul trebuie să fie adresa ta autorizată în Brevo
           sender: {
-            name: "Locallio Contact",
-            email: process.env.SENDER_EMAIL || "contact@locallio.ro",
+            name: `${name} (via Locallio)`,
+            email: officialEmail,
           },
+          // Destinatarul este tot adresa ta (unde vrei să primești mesajul)
           to: [
             {
-              email:
-                process.env.CONTACT_RECEIVER_EMAIL || "contact@locallio.ro",
-              name: "Suport Locallio",
+              email: officialEmail,
+              name: officialName,
             },
           ],
+          // replyTo asigură că dacă dai Reply în Gmail, îi trimiți răspuns direct clientului
           replyTo: {
             email: email,
             name: name,
           },
           subject: `[Contact Locallio] ${subject || "Mesaj nou"}: de la ${name}`,
           htmlContent: `
-          <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px;">
-            <h2 style="color: #059669; border-bottom: 2px solid #059669; padding-bottom: 8px;">Mesaj nou din Formularul de Contact</h2>
-            <p><strong>Nume expeditor:</strong> ${name}</p>
-            <p><strong>Email expeditor:</strong> <a href="mailto:${email}">${email}</a></p>
-            <p><strong>Subiect:</strong> ${subject}</p>
-            <div style="margin-top: 20px; background-color: #f9fafb; padding: 16px; border-left: 4px solid #059669; border-radius: 4px;">
-              <p style="margin: 0; font-weight: bold; color: #4b5563;">Mesaj:</p>
-              <p style="margin-top: 8px; white-space: pre-wrap;">${message}</p>
+            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px;">
+              <h2 style="color: #059669; border-bottom: 2px solid #059669; padding-bottom: 8px;">Mesaj nou din Formularul de Contact</h2>
+              <p><strong>Nume expeditor:</strong> ${name}</p>
+              <p><strong>Email expeditor:</strong> <a href="mailto:${email}">${email}</a></p>
+              <p><strong>Subiect:</strong> ${subject}</p>
+              <div style="margin-top: 20px; background-color: #f9fafb; padding: 16px; border-left: 4px solid #059669; border-radius: 4px;">
+                <p style="margin: 0; font-weight: bold; color: #4b5563;">Mesaj:</p>
+                <p style="margin-top: 8px; white-space: pre-wrap;">${message}</p>
+              </div>
+              <p style="font-size: 12px; color: #6b7280; margin-top: 24px;">Apasă 'Reply' / 'Răspunde' în Gmail pentru a-i scrie direct utilizatorului.</p>
             </div>
-            <p style="font-size: 12px; color: #6b7280; margin-top: 24px;">Puteți da 'Reply' direct la acest email pentru a-i răspunde utilizatorului.</p>
-          </div>
-        `,
+          `,
         }),
       });
 
