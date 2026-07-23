@@ -32,7 +32,7 @@ export const Contact: React.FC<ContactProps> = ({ onAddToast, onNavigate }) => {
       // Preluăm variabila VITE_API_URL (https://startupproducator.onrender.com)
       const apiUrl = import.meta.env.VITE_API_URL;
 
-      const response = await fetch(`${apiUrl}/api/contact`, {
+      const response = await fetch(`${apiUrl}/contact`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
