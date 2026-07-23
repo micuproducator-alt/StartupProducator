@@ -177,19 +177,34 @@ export const Home: React.FC<HomeProps> = ({
       setCalculatedRouteCounties([]);
     }
   }, [searchMode, routeStartCounty, routeEndCounty]);
-  // ⚡️ Sincronizare URL Params cu Filtrele din Home (pentru Link-uri din Footer / SEO)
+  // ⚡️ Sincronizare URL Params cu Filtrele din Home
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const categoriaURL = searchParams.get("categoria");
-    const judetURL = searchParams.get("judet");
+    const applyFiltersFromURL = () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const categoriaURL = searchParams.get("categoria");
+      const judetURL = searchParams.get("judet");
 
-    if (categoriaURL) {
-      setSelectedCategory(categoriaURL);
-    }
-    if (judetURL) {
-      setFilterCounty(judetURL);
-    }
-  }, [window.location.search]);
+      if (categoriaURL) setSelectedCategory(categoriaURL);
+      if (judetURL) setFilterCounty(judetURL);
+
+      // Daca avem filtre in URL, derulam lin direct la anunturi, nu la header
+      if (categoriaURL || judetURL) {
+        setTimeout(() => {
+          const listingsEl = document.getElementById("listings");
+          if (listingsEl) {
+            listingsEl.scrollIntoView({ behavior: "smooth" });
+          }
+        }, 100);
+      }
+    };
+
+    // Rulam la incarcare
+    applyFiltersFromURL();
+
+    // Ascultam schimbarile de URL (popstate)
+    window.addEventListener("popstate", applyFiltersFromURL);
+    return () => window.removeEventListener("popstate", applyFiltersFromURL);
+  }, []);
 
   const processedAds = useMemo(() => {
     const normalize = (text: string) =>

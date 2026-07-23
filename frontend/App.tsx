@@ -621,7 +621,12 @@ const App: React.FC = () => {
                       href="/?categoria=Miere&judet=Suceava"
                       onClick={(e) => {
                         e.preventDefault();
-                        navigate("/?categoria=Miere&judet=Suceava");
+                        window.history.pushState(
+                          {},
+                          "",
+                          "/?categoria=Miere&judet=Suceava",
+                        );
+                        window.dispatchEvent(new Event("popstate"));
                       }}
                       className="hover:text-emerald-700 transition-colors flex items-center gap-1"
                     >
@@ -633,7 +638,12 @@ const App: React.FC = () => {
                       href="/?categoria=Lactate&judet=Sibiu"
                       onClick={(e) => {
                         e.preventDefault();
-                        navigate("/?categoria=Lactate&judet=Sibiu");
+                        window.history.pushState(
+                          {},
+                          "",
+                          "/?categoria=Lactate&judet=Sibiu",
+                        );
+                        window.dispatchEvent(new Event("popstate"));
                       }}
                       className="hover:text-emerald-700 transition-colors flex items-center gap-1"
                     >
@@ -645,7 +655,12 @@ const App: React.FC = () => {
                       href="/?categoria=Legume&judet=Ilfov"
                       onClick={(e) => {
                         e.preventDefault();
-                        navigate("/?categoria=Legume&judet=Ilfov");
+                        window.history.pushState(
+                          {},
+                          "",
+                          "/?categoria=Legume&judet=Ilfov",
+                        );
+                        window.dispatchEvent(new Event("popstate"));
                       }}
                       className="hover:text-emerald-700 transition-colors flex items-center gap-1"
                     >
@@ -657,7 +672,12 @@ const App: React.FC = () => {
                       href="/?categoria=Oua&judet=Brasov"
                       onClick={(e) => {
                         e.preventDefault();
-                        navigate("/?categoria=Oua&judet=Brasov");
+                        window.history.pushState(
+                          {},
+                          "",
+                          "/?categoria=Oua&judet=Brasov",
+                        );
+                        window.dispatchEvent(new Event("popstate"));
                       }}
                       className="hover:text-emerald-700 transition-colors flex items-center gap-1"
                     >
