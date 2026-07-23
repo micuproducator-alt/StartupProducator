@@ -186,10 +186,9 @@ app.post(
           .json({ error: "Configurație email indisponibilă pe server." });
       }
 
-      // Folosim adresa ta validată din .env (micuproducator@gmail.com)
-      const officialEmail =
-        process.env.OFFICIAL_EMAIL || "micuproducator@gmail.com";
-      const officialName = process.env.OFFICIAL_NAME || "Micul Producător";
+      // Folosim email-ul tău din .env (micuproducator@gmail.com)
+      const myEmail = process.env.OFFICIAL_EMAIL || "micuproducator@gmail.com";
+      const myName = process.env.OFFICIAL_NAME || "Micul Producător";
 
       const response = await fetch("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
@@ -199,19 +198,19 @@ app.post(
           "api-key": brevoApiKey,
         },
         body: JSON.stringify({
-          // Expeditorul trebuie să fie adresa ta autorizată în Brevo
+          // Expeditorul autorizat în Brevo
           sender: {
             name: `${name} (via Locallio)`,
-            email: officialEmail,
+            email: myEmail,
           },
-          // Destinatarul este tot adresa ta (unde vrei să primești mesajul)
+          // Destinatarul (unde PRIMEȘTI tu mesajul)
           to: [
             {
-              email: officialEmail,
-              name: officialName,
+              email: myEmail,
+              name: myName,
             },
           ],
-          // replyTo asigură că dacă dai Reply în Gmail, îi trimiți răspuns direct clientului
+          // Când dai 'Reply' în Gmail, îi răspunzi direct celui ce a completat formularul
           replyTo: {
             email: email,
             name: name,
@@ -249,7 +248,6 @@ app.post(
     }
   },
 );
-
 // --- 4. RUTE GEOGRAFIE (NOU - PRODUCTION READY) ---
 
 // Obține toate județele
