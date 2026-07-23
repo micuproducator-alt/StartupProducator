@@ -76,29 +76,6 @@ export const Contact: React.FC<ContactProps> = ({ onAddToast, onNavigate }) => {
       </Helmet>
 
       <div className="max-w-3xl mx-auto">
-        {/* Buton Finuț de Întoarcere la Anunțuri */}
-        <div className="mb-6">
-          <button
-            onClick={handleBackToAds}
-            className="inline-flex items-center gap-2 text-xs font-bold text-stone-500 hover:text-emerald-600 transition-colors group px-3 py-1.5 rounded-full hover:bg-stone-100"
-          >
-            <svg
-              className="w-4 h-4 transform group-hover:-translate-x-1 transition-transform"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Înapoi la anunțuri
-          </button>
-        </div>
-
         {/* Header Secțiune */}
         <div className="text-center mb-10">
           <span className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600 bg-emerald-50 px-4 py-1.5 rounded-full border border-emerald-100 inline-block mb-3">
@@ -200,6 +177,39 @@ export const Contact: React.FC<ContactProps> = ({ onAddToast, onNavigate }) => {
               </Button>
             </div>
           </form>
+        </div>
+
+        {/* Casetă evidențiată JOS: Return la Anunțuri (Highlight & Ergonomic) */}
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-between bg-emerald-50/60 border border-emerald-100 rounded-3xl p-6 gap-4 text-center sm:text-left">
+          <div>
+            <h4 className="text-sm font-bold text-stone-900">
+              Căutai un produs sau un producător local?
+            </h4>
+            <p className="text-xs text-stone-600 mt-0.5">
+              Întoarce-te la piața digitală și vezi produsele proaspete din zona
+              ta.
+            </p>
+          </div>
+
+          <button
+            onClick={handleBackToAds}
+            className="w-full sm:w-auto shrink-0 inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider px-6 py-3.5 rounded-2xl shadow-md hover:shadow-emerald-200 transition-all duration-200 group active:scale-95"
+          >
+            <svg
+              className="w-4 h-4 transform group-hover:-translate-x-1 transition-transform"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.5"
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            Inapoi la Anunțuri
+          </button>
         </div>
       </div>
     </div>
