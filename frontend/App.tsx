@@ -472,8 +472,9 @@ const App: React.FC = () => {
 
         <footer className="bg-stone-50 border-t border-stone-200/60 pt-16 pb-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
-              {/* COLOANA BRAND (Stânga) */}
+            {/* GRILE PRINCIPALE (Ajustat la 4 coloane pe ecrane medii/mari) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-16">
+              {/* COLOANA 1: BRAND */}
               <div className="space-y-4">
                 <div className="flex flex-col gap-1">
                   <span className="text-xl font-black text-stone-900 tracking-tight">
@@ -497,17 +498,17 @@ const App: React.FC = () => {
                   conectând gospodăriile autentice cu consumatorii moderni.
                 </p>
 
-                <div className="flex gap-4 pt-1">
-                  {/* Facebook */}
+                {/* REȚELE SOCIALE */}
+                <div className="flex gap-3 pt-1">
                   <a
                     href="https://www.facebook.com/profile.php?id=61590795770947"
                     target="_blank"
                     rel="noreferrer"
-                    className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-stone-500 hover:text-emerald-600 hover:border-emerald-200 hover:shadow-sm transition-all"
+                    className="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-stone-500 hover:text-emerald-700 hover:border-emerald-200 hover:shadow-sm transition-all"
                     aria-label="Facebook"
                   >
                     <svg
-                      className="w-5 h-5"
+                      className="w-4 h-4"
                       fill="currentColor"
                       viewBox="0 0 24 24"
                     >
@@ -515,16 +516,15 @@ const App: React.FC = () => {
                     </svg>
                   </a>
 
-                  {/* Instagram */}
                   <a
                     href="https://www.instagram.com/locallio.ro/"
                     target="_blank"
                     rel="noreferrer"
-                    className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-stone-500 hover:text-emerald-600 hover:border-emerald-200 hover:shadow-sm transition-all"
+                    className="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-stone-500 hover:text-emerald-700 hover:border-emerald-200 hover:shadow-sm transition-all"
                     aria-label="Instagram"
                   >
                     <svg
-                      className="w-5 h-5"
+                      className="w-4 h-4"
                       fill="currentColor"
                       viewBox="0 0 24 24"
                     >
@@ -532,16 +532,15 @@ const App: React.FC = () => {
                     </svg>
                   </a>
 
-                  {/* LinkedIn */}
                   <a
                     href="#"
                     target="_blank"
                     rel="noreferrer"
-                    className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-stone-500 hover:text-emerald-600 hover:border-emerald-200 hover:shadow-sm transition-all"
+                    className="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-stone-500 hover:text-emerald-700 hover:border-emerald-200 hover:shadow-sm transition-all"
                     aria-label="LinkedIn"
                   >
                     <svg
-                      className="w-5 h-5"
+                      className="w-4 h-4"
                       fill="currentColor"
                       viewBox="0 0 24 24"
                     >
@@ -551,18 +550,29 @@ const App: React.FC = () => {
                 </div>
               </div>
 
-              {/* COLOANA NAVIGAȚIE (Centru) */}
-              <div className="space-y-6">
+              {/* COLOANA 2: NAVIGAȚIE (Centru-Stânga) */}
+              <div className="space-y-4">
                 <h4 className="text-[10px] font-bold text-stone-400 uppercase tracking-[0.2em]">
                   Navigație
                 </h4>
-                <ul className="space-y-3 text-xs text-stone-600 font-medium">
+                <ul className="space-y-2.5 text-xs text-stone-600 font-medium">
                   <li>
                     <button
                       onClick={() => navigate("/")}
                       className="hover:text-emerald-700 transition-colors"
                     >
                       Acasă
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => navigate("/blog")}
+                      className="hover:text-emerald-700 transition-colors font-bold text-emerald-800 flex items-center gap-1.5"
+                    >
+                      <span>Blog & Ghiduri</span>
+                      <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full uppercase">
+                        Nou
+                      </span>
                     </button>
                   </li>
                   <li>
@@ -600,8 +610,65 @@ const App: React.FC = () => {
                 </ul>
               </div>
 
-              {/* COLOANA CONTACT (Dreapta) */}
-              <div className="space-y-6">
+              {/* COLOANA 3: CĂUTĂRI FRECVENTE (SEO INTERNAL LINKS) */}
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-bold text-stone-400 uppercase tracking-[0.2em]">
+                  Căutări Frecvente
+                </h4>
+                <ul className="space-y-2.5 text-xs text-stone-600 font-medium">
+                  <li>
+                    <a
+                      href="/cautare?categorie=miere&judet=suceava"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate("/cautare?categorie=miere&judet=suceava");
+                      }}
+                      className="hover:text-emerald-700 transition-colors flex items-center gap-1"
+                    >
+                      <span>🍯</span> Producători Miere Suceava
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="/cautare?categorie=lactate&judet=sibiu"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate("/cautare?categorie=lactate&judet=sibiu");
+                      }}
+                      className="hover:text-emerald-700 transition-colors flex items-center gap-1"
+                    >
+                      <span>🧀</span> Brânză de Oaie Mărginimea Sibiului
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="/cautare?categorie=legume&judet=ilfov"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate("/cautare?categorie=legume&judet=ilfov");
+                      }}
+                      className="hover:text-emerald-700 transition-colors flex items-center gap-1"
+                    >
+                      <span>🥦</span> Legume Bio Ilfov
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="/cautare?categorie=oua&judet=brasov"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate("/cautare?categorie=oua&judet=brasov");
+                      }}
+                      className="hover:text-emerald-700 transition-colors flex items-center gap-1"
+                    >
+                      <span>🥚</span> Ouă de Casă Brașov
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              {/* COLOANA 4: CONTACT PLATFORMĂ (Dreapta) */}
+              <div className="space-y-4">
                 <h4 className="text-[10px] font-bold text-stone-400 uppercase tracking-[0.2em]">
                   Contact Platformă
                 </h4>
@@ -610,12 +677,12 @@ const App: React.FC = () => {
                   <br />
                   <a
                     href="mailto:micuproducator@gmail.com"
-                    className="text-emerald-600 hover:underline font-bold"
+                    className="text-emerald-700 hover:underline font-bold"
                   >
                     micuproducator@gmail.com
                   </a>
                 </p>
-                <p className="text-[9px] font-bold text-stone-300 uppercase tracking-widest leading-loose">
+                <p className="text-[9px] font-bold text-stone-300 uppercase tracking-widest leading-loose pt-2">
                   Made with passion
                   <br />
                   for Romanian heritage.
