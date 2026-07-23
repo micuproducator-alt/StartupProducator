@@ -5,19 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>
-      Locallio – Piața Producătorilor Locali din România | Produse Artizanale &
-      Ecologice
+      Locallio – Harta Producătorilor Locali din România | Legume, Fructe &
+      Brânzeturi de la Gospodari
     </title>
+
     <meta
       name="description"
-      content="Locallio conectează direct producătorii locali din România cu masa ta: brânzeturi, miere, legume, conserve și produse artizanale, fără intermediari. Comandă proaspăt, susține economia locală."
+      content="Cumpără direct de la producătorii locali, legumicultorii, apicultorii și gospodarii din România. Legume de țară proaspete, brânzeturi tradiționale, miere pură și produse artizanale fără intermediari."
     />
+
     <meta name="author" content="Locallio" />
     <meta
       name="robots"
       content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
     />
     <link rel="canonical" href="https://www.locallio.ro/" />
+
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
 
     <meta name="geo.region" content="RO" />
     <meta name="geo.placename" content="România" />
@@ -27,11 +31,11 @@
     <meta property="og:locale" content="ro_RO" />
     <meta
       property="og:title"
-      content="Locallio – Piața Producătorilor Locali din România"
+      content="Locallio – Piața și Harta Producătorilor Locali din România"
     />
     <meta
       property="og:description"
-      content="Descoperă și comandă direct de la producători locali verificați: hrană curată, proaspătă, de la oameni gospodari din toate colțurile țării."
+      content="Găsește legume de țară, brânzeturi tradiționale și miere pură direct de la legumicultori și apicultori din România."
     />
     <meta property="og:url" content="https://www.locallio.ro/" />
     <meta property="og:image" content="https://www.locallio.ro/og-image.jpg" />
@@ -39,17 +43,17 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="Locallio - Piața Producătorilor Locali din România"
+      content="Locallio - Harta Producătorilor Locali din România"
     />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="Locallio – Piața Producătorilor Locali din România"
+      content="Locallio – Harta Producătorilor Locali din România"
     />
     <meta
       name="twitter:description"
-      content="Conectăm producătorii locali din România direct cu masa ta. Hrană curată, proaspătă, fără intermediari."
+      content="Găsește legume de țară, brânzeturi și miere proaspătă direct de la gospodarii din România."
     />
     <meta name="twitter:image" content="https://www.locallio.ro/og-image.jpg" />
 
@@ -67,6 +71,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+    />
+    <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
@@ -76,31 +85,48 @@
         "@context": "https://schema.org",
         "@type": "Organization",
         "name": "Locallio",
-        "alternateName": "Locallio - Piața Producătorilor Locali",
+        "alternateName": ["Locallio.ro", "Piața Producătorilor Locali"],
         "url": "https://www.locallio.ro/",
         "logo": "https://www.locallio.ro/logo.png",
-        "description": "Locallio este o platformă online care conectează producătorii locali din România direct cu consumatorii, pentru produse alimentare proaspete și artizanale.",
+        "description": "Platformă digitală și hartă interactivă ce conectează producătorii locali, legumicultorii, apicultorii și fermierii din România direct cu consumatorii.",
         "areaServed": {
           "@type": "Country",
           "name": "România"
         },
         "sameAs": [
-          "https://www.facebook.com/locallio",
-          "https://www.instagram.com/locallio"
+          "https://www.facebook.com/profile.php?id=61590431496895",
+          "https://www.instagram.com/locallio.ro/"
         ]
       }
     </script>
+
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "Locallio",
-        "url": "https://www.locallio.ro/",
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": "https://www.locallio.ro/cauta?q={search_term_string}",
-          "query-input": "required name=search_term_string"
-        }
+        "@type": "ItemList",
+        "name": "Categorii de produse locale pe Locallio",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Legume de țară și verdețuri proaspete"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Miere pură și produse apicole"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Brânzeturi tradiționale și lactate de casă"
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "name": "Fructe de livadă și conserve artizanale"
+          }
+        ]
       }
     </script>
 
@@ -132,7 +158,19 @@
         flex-direction: column;
         gap: 1rem;
       }
+      .seo-crawl-block {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
     </style>
+
     <script>
       window.process = window.process || { env: {} };
       window.process.env = {
@@ -154,6 +192,27 @@
     </script>
   </head>
   <body class="text-stone-900">
+    <header class="seo-crawl-block">
+      <h1>Locallio - Harta Producătorilor Locali din România</h1>
+      <p>
+        Cumpără legume de țară, miere pură, brânzeturi de casă și fructe
+        proaspete direct de la producătorii locali, legumicultorii și
+        apicultorii din toată țara.
+      </p>
+      <h2>Categorii principale de produse alimentare</h2>
+      <ul>
+        <li>Legume proaspete și verdețuri de grădină</li>
+        <li>Miere de albine, polen și propolis de la apicultori</li>
+        <li>Brânzeturi, caș, urdă și lapte proaspăt</li>
+        <li>Fructe de sezon, dulcețuri și conserve de casă</li>
+      </ul>
+      <h2>Acoperire Națională</h2>
+      <p>
+        Producători locali din Muntenia, Transilvania, Moldova, Oltenia, Banat,
+        Dobrogea, Bucovina și Crișana.
+      </p>
+    </header>
+
     <div id="root">
       <div class="initial-loader">
         <svg
@@ -179,6 +238,20 @@
         <span>Se încarcă piața locală...</span>
       </div>
     </div>
+
+    <noscript>
+      <h2>
+        Piața Producătorilor Locali, Legumicultorilor și Apicultorilor din
+        România
+      </h2>
+      <p>
+        Locallio conectează direct consumatorii cu mici producători agricoli din
+        fiecare județ. Găsește roșii de grădină, miere de salcâm și polifloră,
+        lapte și brânză de oaie/vacă, gemuri artizanale și preparate
+        tradiționale făcute de gospodari români.
+      </p>
+    </noscript>
+
     <div id="app-error"></div>
     <script>
       window.addEventListener("error", function (event) {
