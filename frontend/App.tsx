@@ -8,6 +8,7 @@ import { Admin } from "./pages/Admin";
 import { Terms } from "./pages/Terms";
 import { Privacy } from "./pages/Privacy";
 import { PaymentSuccess } from "./pages/PaymentSuccess";
+import { Contact } from "./pages/Contacts";
 import { Modal } from "./components/Modal";
 import { ToastContainer } from "./components/Toast";
 import GhidContinut from "./components/GhidContinut"; // <--- Importăm conținutul ghidului creat anterior
@@ -288,6 +289,11 @@ const App: React.FC = () => {
       return <DonationPage />;
     }
 
+    // RUTA PENTRU CONTACT
+    if (cleanPath === "/Contacts") {
+      return <Contact onAddToast={addToast} />;
+    }
+
     // Aceasta rămâne ultima, pentru pagini inexistente
     return (
       <div className="p-24 text-center animate-fade-in">
@@ -454,7 +460,7 @@ const App: React.FC = () => {
         <footer className="bg-stone-50 border-t border-stone-200/60 pt-16 pb-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
-              {/* COLOANA BRAND (Stânga) - MODIFICATĂ ȘI ECHILIBRATĂ VIZEUAL */}
+              {/* COLOANA BRAND (Stânga) */}
               <div className="space-y-4">
                 <div className="flex flex-col gap-1">
                   <span className="text-xl font-black text-stone-900 tracking-tight">
@@ -552,6 +558,14 @@ const App: React.FC = () => {
                       className="hover:text-emerald-700 transition-colors text-left"
                     >
                       Misiunea Locallio
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => navigate("/contact")}
+                      className="hover:text-emerald-700 transition-colors"
+                    >
+                      Contact & Suport
                     </button>
                   </li>
                   <li>
