@@ -177,6 +177,19 @@ export const Home: React.FC<HomeProps> = ({
       setCalculatedRouteCounties([]);
     }
   }, [searchMode, routeStartCounty, routeEndCounty]);
+  // ⚡️ Sincronizare URL Params cu Filtrele din Home (pentru Link-uri din Footer / SEO)
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const categoriaURL = searchParams.get("categoria");
+    const judetURL = searchParams.get("judet");
+
+    if (categoriaURL) {
+      setSelectedCategory(categoriaURL);
+    }
+    if (judetURL) {
+      setFilterCounty(judetURL);
+    }
+  }, [window.location.search]);
 
   const processedAds = useMemo(() => {
     const normalize = (text: string) =>

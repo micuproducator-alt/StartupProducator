@@ -618,50 +618,50 @@ const App: React.FC = () => {
                 <ul className="space-y-2.5 text-xs text-stone-600 font-medium">
                   <li>
                     <a
-                      href="/cautare?categorie=miere&judet=suceava"
+                      href="/?categoria=Miere&judet=Suceava"
                       onClick={(e) => {
                         e.preventDefault();
-                        navigate("/cautare?categorie=miere&judet=suceava");
+                        navigate("/?categoria=Miere&judet=Suceava");
                       }}
                       className="hover:text-emerald-700 transition-colors flex items-center gap-1"
                     >
-                      <span>🍯</span> Producători Miere Suceava
+                      Producători Miere Suceava
                     </a>
                   </li>
                   <li>
                     <a
-                      href="/cautare?categorie=lactate&judet=sibiu"
+                      href="/?categoria=Lactate&judet=Sibiu"
                       onClick={(e) => {
                         e.preventDefault();
-                        navigate("/cautare?categorie=lactate&judet=sibiu");
+                        navigate("/?categoria=Lactate&judet=Sibiu");
                       }}
                       className="hover:text-emerald-700 transition-colors flex items-center gap-1"
                     >
-                      <span>🧀</span> Brânză de Oaie Mărginimea Sibiului
+                      Brânză de Oaie Mărginimea Sibiului
                     </a>
                   </li>
                   <li>
                     <a
-                      href="/cautare?categorie=legume&judet=ilfov"
+                      href="/?categoria=Legume&judet=Ilfov"
                       onClick={(e) => {
                         e.preventDefault();
-                        navigate("/cautare?categorie=legume&judet=ilfov");
+                        navigate("/?categoria=Legume&judet=Ilfov");
                       }}
                       className="hover:text-emerald-700 transition-colors flex items-center gap-1"
                     >
-                      <span>🥦</span> Legume Bio Ilfov
+                      Legume Bio Ilfov
                     </a>
                   </li>
                   <li>
                     <a
-                      href="/cautare?categorie=oua&judet=brasov"
+                      href="/?categoria=Oua&judet=Brasov"
                       onClick={(e) => {
                         e.preventDefault();
-                        navigate("/cautare?categorie=oua&judet=brasov");
+                        navigate("/?categoria=Oua&judet=Brasov");
                       }}
                       className="hover:text-emerald-700 transition-colors flex items-center gap-1"
                     >
-                      <span>🥚</span> Ouă de Casă Brașov
+                      Ouă de Casă Brașov
                     </a>
                   </li>
                 </ul>
