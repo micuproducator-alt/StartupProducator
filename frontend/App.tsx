@@ -562,7 +562,7 @@ const App: React.FC = () => {
                   </li>
                   <li>
                     <button
-                      onClick={() => navigate("/contact")}
+                      onClick={() => navigate("/Contacts")}
                       className="hover:text-emerald-700 transition-colors"
                     >
                       Contact & Suport
