@@ -5,12 +5,9 @@ import { AdCard } from "../components/AdCard";
 import { Helmet } from "react-helmet-async";
 import {
   fetchAdById,
-  fetchActiveAds,
   addReview,
   fetchRelatedAds,
 } from "../services/adsService";
-
-// Adaugă fetchRelatedAds aici:
 
 interface AdDetailsProps {
   id: string;
@@ -45,19 +42,27 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
 
   const [relatedAds, setRelatedAds] = useState<Ad[]>([]);
 
+  // 1. Incarcare anunt principal
   useEffect(() => {
-    const load = async () => {
+    let isMounted = true;
+
+    // Resetam starea vizuala la schimbarea ID-ului
+    setCurrentImageIndex(0);
+    setShowEmail(false);
+
+    const loadAd = async () => {
+      // Daca avem deja date initiale potrivite, nu afisam spinner-ul
+      if (!initialData || initialData.id !== id) {
+        setLoading(true);
+      } else {
+        setAd(initialData);
+      }
+
       try {
-        // SCHIMBARE AICI: Dacă avem deja date inițiale, NU mai afișăm spinner-ul de loading
-        if (!initialData) {
-          setLoading(true);
-        }
-
         const data = await fetchAdById(id);
-        console.log("OBIECTUL AD PRIMIT:", data);
-        console.log("RECENZII IN OBIECT:", data.ads_reviews);
-        console.log("DEBUG IMAGINI:", data.ads_images);
+        if (!isMounted) return;
 
+        // Calc medie rating
         if (data.ads_reviews && data.ads_reviews.length > 0) {
           const total = data.ads_reviews.reduce(
             (sum: number, r: any) => sum + Number(r.rating || 0),
@@ -69,23 +74,24 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
         }
 
         setAd(data);
-        console.log("URL IMAGINE TEST:", data.ads_images?.[0]?.url);
       } catch (err) {
-        console.error(err);
+        console.error("Eroare la incarcarea anuntului:", err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
-    load();
-  }, [id, initialData]); // SCHIMBARE AICI: Am adăugat initialData în dependențe
-  useEffect(() => {
-    if (initialData) {
-      setAd(initialData);
-      setLoading(false);
-    }
-  }, [initialData, id]);
 
+    loadAd();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, initialData]);
+
+  // 2. Incarcare anunturi similare
   useEffect(() => {
+    let isMounted = true;
+
     if (ad) {
       const loadRelated = async () => {
         const currentCatNames =
@@ -94,18 +100,24 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
             .filter(Boolean) || [];
 
         if (currentCatNames.length > 0) {
-          const similar = await fetchRelatedAds(currentCatNames, ad.id);
-          setRelatedAds(similar);
+          try {
+            const similar = await fetchRelatedAds(currentCatNames, ad.id);
+            if (isMounted) setRelatedAds(similar);
+          } catch (error) {
+            console.error("Eroare la incarcarea anunturilor similare:", error);
+          }
         }
       };
       loadRelated();
     }
-  }, [ad?.id]); // Rulăm doar când se schimbă anunțul principal
+
+    return () => {
+      isMounted = false;
+    };
+  }, [ad?.id]);
 
   const handleRelatedClick = (relatedAd: Ad) => {
     setAd(relatedAd);
-    setCurrentImageIndex(0);
-    setShowEmail(false);
     if (onNavigate) onNavigate(`ad/${relatedAd.slug || relatedAd.id}`);
   };
 
@@ -127,7 +139,7 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
 
   const handleShare = async () => {
     const identifier = ad?.slug || id;
-    const url = window.location.origin + `/#/ad/${identifier}`;
+    const url = `${window.location.origin}/#/ad/${identifier}`;
     if (navigator.share) {
       try {
         await navigator.share({
@@ -135,7 +147,9 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
           text: `Vezi acest produs pe MiculProducator: ${ad?.title}`,
           url: url,
         });
-      } catch (err) {}
+      } catch (err) {
+        // Ignoram erorile de tip "User cancelled share"
+      }
     } else {
       await navigator.clipboard.writeText(url);
       if (onAddToast) onAddToast("info", "Link copiat în clipboard!");
@@ -149,7 +163,6 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
     const trimmedName = reviewName.trim();
     const trimmedComment = reviewComment.trim();
 
-    // 1. Validări de bază
     if (trimmedName.length < 2) {
       onAddToast?.("error", "Te rugăm să introduci un nume valid.");
       return;
@@ -162,26 +175,22 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
     setSubmittingReview(true);
 
     try {
-      // 2. Trimitem la backend (addReview returnează rândul nou din DB)
       const savedReview = await addReview(ad.id, {
         author_name: trimmedName,
         rating: Number(reviewRating),
         comment: trimmedComment,
       });
 
-      // 3. Actualizăm starea locală (UI-ul se va schimba instant)
       setAd((prev) => {
         if (!prev) return null;
 
-        // Ne asigurăm că obiectul nou are structura corectă pentru afișare
         const normalizedReview = {
           ...savedReview,
-          author: savedReview.author || trimmedName, // Fallback în caz că DB întârzie
+          author: savedReview.author || trimmedName,
         };
 
         const updatedReviews = [normalizedReview, ...(prev.ads_reviews || [])];
 
-        // Recalculăm media notelor (Rating-ul global al anunțului)
         const totalRating = updatedReviews.reduce(
           (sum, r) => sum + Number(r.rating || 0),
           0,
@@ -193,19 +202,17 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
           ...prev,
           ads_reviews: updatedReviews,
           rating: totalRating / newReviewCount,
-          reviewCount: newReviewCount, // Update și la numărul total de recenzii
+          reviewCount: newReviewCount,
         };
       });
 
-      // 4. Curățăm formularul
       setReviewName("");
       setReviewComment("");
       setReviewFormVisible(false);
 
-      // 5. Feedback vizual
       onAddToast?.("success", "Mulțumim! Recenzia a fost adăugată.");
     } catch (error: any) {
-      const message = error.message.includes("deja o recenzie")
+      const message = error.message?.includes("deja o recenzie")
         ? error.message
         : "Nu s-a putut salva recenzia. Încearcă mai târziu.";
       onAddToast?.("error", message);
@@ -214,9 +221,6 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
     }
   };
 
-  // --- STATE-URI / HOOKS (le lași pe ale tale aici, ex: const [showEmail, setShowEmail] = useState(false);)
-
-  // Verificări de siguranță (Trebuie să fie obligatoriu înainte de orice logica/calcul care folosește "ad")
   if (loading && !ad) {
     return (
       <div className="p-12 text-center text-stone-500 font-bold">
@@ -233,22 +237,17 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
     );
   }
 
-  // ⚡️ CONSTRUIRE LINK-URI ACȚIUNE RAPIDĂ
-  // Link-ul de WhatsApp (Asigură-te că folosești câmpul corect din baza ta de date: ad.phoneNumber sau ad.phone_number)
-  // ⚡️ CONSTRUIRE LINK-URI ACȚIUNE RAPIDĂ (Corectat pentru tipul exact de date 'phone_number')
   const userPhone = ad.phone_number;
 
   const whatsappLink = userPhone
     ? `https://wa.me/40${userPhone.replace(/\D/g, "").replace(/^0/, "").replace(/^40/, "")}?text=Salut,%20am%20v%C4%83zut%20anun%C8%9Bul%20t%C4%83u%20"${encodeURIComponent(ad.title)}"%20pe%20Locallio.`
     : null;
 
-  // Link-ul de Google Maps (Căutare după oraș și județ)
   const mapsLink =
     ad.city && ad.county
       ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${ad.city}, ${ad.county}, Romania`)}`
       : null;
 
-  // --- LOGICA SCHEMA DATA PENTRU GOOGLE ---
   const schemaData = {
     "@context": "https://schema.org/",
     "@type": "Product",
@@ -270,14 +269,13 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
       availability: "https://schema.org/InStock",
       areaServed: ad.county,
     },
-    aggregateRating:
-      ad.rating > 0
-        ? {
-            "@type": "AggregateRating",
-            ratingValue: ad.rating,
-            reviewCount: ad.ads_reviews?.length || 1,
-          }
-        : undefined,
+    ...(ad.rating > 0 && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: ad.rating,
+        reviewCount: ad.ads_reviews?.length || 1,
+      },
+    }),
   };
 
   const StarRating = ({
@@ -305,7 +303,6 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
 
   return (
     <div className="bg-white">
-      {/* --- SEO START --- */}
       <Helmet>
         <title>{`${ad.title} | Preț ${ad.price} RON | Micul Producător`}</title>
         <link
@@ -314,14 +311,13 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
         />
         <meta
           name="description"
-          content={`Cumpără ${ad.title} direct de la producător din ${ad.city}, ${ad.county}. ${ad.description.substring(0, 150)}...`}
+          content={`Cumpără ${ad.title} direct de la producător din ${ad.city}, ${ad.county}. ${ad.description?.substring(0, 150)}...`}
         />
         <meta
           name="keywords"
           content={`${ad.title}, produse naturale, ${ad.city}, legume de tara, proaspat`}
         />
 
-        {/* Open Graph pentru Facebook/WhatsApp share */}
         <meta property="og:title" content={ad.title} />
         <meta
           property="og:description"
@@ -336,10 +332,8 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
           }
         />
 
-        {/* Date Structurate pentru Google JSON-LD */}
         <script type="application/ld+json">{JSON.stringify(schemaData)}</script>
       </Helmet>
-      {/* --- SEO END --- */}
 
       <div className="overflow-hidden">
         {/* Gallery Section */}
@@ -347,9 +341,8 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
           {(ad.ads_images?.length || 0) > 0 ? (
             <img
               src={ad.ads_images?.[currentImageIndex]?.url}
-              alt=""
+              alt={ad.title}
               className="w-full h-full object-cover"
-              // SCHIMBARE AICI: Îi spunem browserului să o descarce cu prioritate maximă
               fetchPriority="high"
               loading="eager"
               decoding="async"
@@ -493,7 +486,6 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
               Descriere Produs
             </h3>
 
-            {/* ⚡️ DOAR PE LINIA DE MAI JOS ADĂUGĂM: whitespace-pre-line */}
             <div className="prose prose-stone max-w-none text-stone-600 bg-stone-50/50 p-8 rounded-[2rem] border border-stone-100 leading-relaxed font-medium whitespace-pre-line">
               {ad.description}
             </div>
@@ -501,7 +493,7 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
 
           <div className="mt-8 p-4 sm:p-8 bg-emerald-50/50 rounded-3xl sm:rounded-[2.5rem] border border-emerald-100/50 w-full animate-in fade-in duration-300">
             <div className="flex flex-col sm:grid sm:grid-cols-3 gap-3 sm:gap-4 w-full">
-              {/* 🟢 BUTTON 1: WHATSAPP */}
+              {/* WhatsApp / Telefon */}
               {whatsappLink ? (
                 <a
                   href={whatsappLink}
@@ -515,18 +507,17 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
                   WhatsApp
                 </a>
               ) : (
-                // Fallback dacă nu are telefon completat, îi dăm buton de apel simplu (dacă există totuși un număr)
                 userPhone && (
                   <a
                     href={`tel:${userPhone}`}
                     className="w-full h-14 sm:h-16 flex items-center justify-center gap-3 bg-stone-900 text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-wider text-xs hover:shadow-xl transition-all active:scale-[0.98] shadow-md cursor-pointer text-center"
                   >
-                    Suna Producatorul
+                    Sună Producătorul
                   </a>
                 )
               )}
 
-              {/* 🔵 BUTTON 2: GOOGLE MAPS */}
+              {/* Google Maps */}
               {mapsLink && (
                 <a
                   href={mapsLink}
@@ -557,7 +548,7 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
                 </a>
               )}
 
-              {/* ⚪️ BUTTON 3: EMAIL INTELIGENT */}
+              {/* Email Button */}
               {!showEmail ? (
                 <button
                   type="button"
@@ -595,6 +586,8 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
               )}
             </div>
           </div>
+
+          {/* Section Recenzii */}
           <div className="mt-20 pt-16 border-t border-stone-100">
             <div className="flex items-center justify-between mb-10">
               <h3 className="text-xl font-black text-stone-900 uppercase tracking-tight">
@@ -667,7 +660,6 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
                   >
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                       <div className="flex items-center gap-3">
-                        {/* Avatar Placeholder - Stil Profi */}
                         <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 font-black text-xs uppercase border border-emerald-100">
                           {(review.author || "U")[0]}
                         </div>
@@ -690,7 +682,6 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
                         </div>
                       </div>
 
-                      {/* Rating-ul vine din componenta ta StarRating */}
                       <div className="bg-stone-50 px-3 py-1.5 rounded-full border border-stone-100">
                         <StarRating rating={review.rating} />
                       </div>
@@ -726,6 +717,7 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
             </div>
           </div>
 
+          {/* Anunturi Similare */}
           {relatedAds.length > 0 && (
             <div className="mt-24 mb-8">
               <h3 className="text-lg font-black text-stone-900 uppercase tracking-tight mb-8">
@@ -738,7 +730,6 @@ export const AdDetails: React.FC<AdDetailsProps> = ({
                     ad={related}
                     onClick={() => handleRelatedClick(related)}
                     mini={true}
-                    /* Rezolvare eroare TypeScript: */
                     isFavorite={false}
                     onToggleFavorite={() => {}}
                   />
