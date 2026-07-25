@@ -159,6 +159,12 @@ app.use("/api/payment", paymentRouter);
 // 👇 AICI PUNEM SITEMAP-UL
 app.use("/", sitemapRouter);
 
+// 👇 RUTA PENTRU CRON-JOB / KEEP-ALIVE (fără Rate Limit)
+app.get("/health", (_req: Request, res: Response) => {
+  res.status(200).send("OK");
+});
+
+// Abia de aici în jos se aplică filtrul de limite pentru restul API-ului:
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000,
   max: 500,
