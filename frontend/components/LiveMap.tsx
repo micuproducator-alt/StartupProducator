@@ -28,7 +28,10 @@ const createDivIcon = (colorClass: string, iconSvg: string) => {
         <div class="w-9 h-9 ${colorClass} rounded-full border-2 border-white shadow-xl flex items-center justify-center transform transition-transform hover:scale-110">
           ${iconSvg}
         </div>
-        <div class="absolute -bottom-1.5 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] ${colorClass.replace("bg-", "border-t-")}"></div>
+        <div class="absolute -bottom-1.5 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] ${colorClass.replace(
+          "bg-",
+          "border-t-",
+        )}"></div>
       </div>
     `,
     iconSize: [36, 45],
@@ -164,8 +167,8 @@ export const LiveMap: React.FC<LiveMapProps> = ({
         scrollWheelZoom={false}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
         {/* ⚡️ CORECCȚIE TRACKING CLICK RUTE ALTERNATIVE */}
